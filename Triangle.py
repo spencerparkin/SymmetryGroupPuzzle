@@ -5,12 +5,15 @@ class Triangle(object):
     # counter-clockwise, they have positive area; if ordered
     # clockwise, negative area.
     def __init__(self, vertexA, vertexB, vertexC):
-        self.vertexA = vertexA
-        self.vertexB = vertexB
-        self.vertexC = vertexC
+        self.vertex_list = [vertexA, vertexB, vertexC]
 
     def SignedArea(self):
-        return (self.vertexB - self.vertexA).Cross(self.vertexC - self.vertexA) / 2.0
+        return (self.vertex[1] - self.vertex[0]).Cross(self.vertex[2] - self.vertex[0]) / 2.0
 
-    def ContainsPoint(self, point, epsilon=1e-7):
-        pass
+    def ContainsPoint(self, point):
+        for i in range(3):
+            j = (i + 1) % 3
+            area = Triangle(self.vertex[i], self.vertex[j], point).SignedArea()
+            if area < 0.0:
+                return False
+        return True

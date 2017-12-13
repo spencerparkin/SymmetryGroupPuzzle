@@ -1,6 +1,7 @@
 # Shape.py
 
 import copy
+import math
 
 from Vector import Vector
 from Triangle import Triangle
@@ -8,7 +9,7 @@ from LineSegment import LineSegment
 
 class Shape(object):
     # These are convex or concave polygons in the plane.
-    # The list of vertices is ordered counter-clockwise.
+    # The list of vertices is always ordered counter-clockwise.
     # The polygon may overlap itself in any region of the plane
     # as long as that overlap has zero area.  The idea here is
     # that we want to be able to represent polygons with zero
@@ -19,67 +20,60 @@ class Shape(object):
     # some points may be repeated in the sequence.
     def __init__(self):
         self.point_list = []
+        self.triangle_list = None
 
     def Clone(self):
         return copy.deepcopy(self)
 
-    def Cut(self, cutting_shape):
-        # Here we cut this shape by the given shape into one or more returned shapes.
-        queue = [self.Clone()]
-        shape_list = []
-        while len(queue) > 0:
-            shape = queue.pop()
-            shapeA, shapeB = shape._SplitAgainst(cutting_shape)
-            if shapeA and shapeB:
-                queue += [shapeA, shapeB]
-            elif shapeA:
-                queue.append(shapeA)
-            else:
-                shape_list.append(shape)
-        return shape_list
+    def Reduce(self):
+        pass # Here, remove all redundant vertices.  The second of three consecutive collinear points, for example.
 
-    def _SplitAgainst(self, cutting_shape):
-        # Here we try to find any valid split of this shape against the given shape.
-        # If none is found, then we may have to punch a hole in the shape and return that.
-        # In the remaining case, we return nothing, as the given shape does not split this shape at all.
+    def Cut(self, cutting_shape):
+        # Here we cut this shape against the given shape into one or more returned shapes.
         pass
+        # Start by creating a graph where every edge is directed so that we know which way is clock-wise.
+        # In this graph are all the vertices shared between this and the given shape, plus the intersection points.
+        # Also, for each edge, we know whether it is one belonging to this shape or the cutting shape.
+        # The remaining task is simply to pull all cut shapes from the graph.
 
     def Tessellate(self):
-        # Here we find and return a triangle list that is a tessellation of this polygon.
+        # Here we find a triangle list that is a tessellation of this polygon.
         # This is not only useful for rendering, but also for determining whether a given
         # point lies somewhere inside the shape.
         if len(self.point_list) < 3:
             return None
         shape = self.Clone()
-        triangle_list = []
+        self.triangle_list = []
         while True:
             if len(shape.point_list) == 3:
-                triangle_list.append(Triangle(shape.point_list[0], shape.point_list[1], shape.point_list[2]))
+                self.triangle_list.append(Triangle(shape.point_list[0], shape.point_list[1], shape.point_list[2]))
                 break
             else:
                 for i in range(len(shape.point_list)):
                     j = (i + 1) % len(shape.point_list)
                     k = (i + 2) % len(shape.point_list)
                     triangle = Triangle(shape.point_list[i], shape.point_list[j], shape.point_list[k])
-                    if triangle.SignedArea() > 0:
+                    area = triangle.SignedArea()
+                    if area > 0:
                         line_segment = LineSegment(shape.point_list[i], shape.point_list[k])
-                        intersection_list = self.FindEdgeIntersectionsWithLineSegment(line_segment)
-                        if len(intersection_list) == 0:
-                            triangle_list.append(triangle)
+                        if self.FindNonTrivialEdgeIntersectionWith(line_segment) < 0:
+                            self.triangle_list.append(triangle)
                             del shape.point_list[j]
                             break
-                else:
-                    return None
-        return triangle_list
 
-    def FindEdgeIntersectionsWithLineSegment(self, line_segment, epsilon=1e-7):
-        # Notice that we treat the given line segment as an open interval here.
-        intersection_list = []
+    def FindNonTrivialEdgeIntersectionWith(self, line_segment, epsilon=1e-7):
         for i in range(len(self.point_list)):
             j = (i + 1) % len(self.point_list)
             edge = LineSegment(self.point_list[i], self.point_list[j])
-            lerp_value = line_segment.IntersectWith(edge)
-            if lerp_value is not None:
-                if 0.0 + epsilon < lerp_value < 1.0 - epsilon:
-                    intersection_list.append(lerp_value)
-        return intersection_list
+            lerp_valueA = line_segment.IntersectWith(edge)
+            lerp_valueB = edge.IntersectWith(line_segment)
+            if math.abs(lerp_valueA) >= epsilon and math.abs(1.0 - lerp_valueA) >= epsilon and \
+                math.abs(lerp_valueB) >= epsilon and math.abs(1.0 - lerp_valueB) >= epsilon:
+                return i
+        return -1
+    
+    def ContainsPoint(self, point):
+        for triangle in self.triangle_list:
+            if triangle.ContainsPoint(point):
+                return True
+        return False
