@@ -3,7 +3,6 @@
 import copy
 import math
 
-from Vector import Vector
 from Triangle import Triangle
 from LineSegment import LineSegment
 
@@ -34,7 +33,12 @@ class Shape(object):
         # Start by creating a graph where every edge is directed so that we know which way is clock-wise.
         # In this graph are all the vertices shared between this and the given shape, plus the intersection points.
         # Also, for each edge, we know whether it is one belonging to this shape or the cutting shape.
-        # The remaining task is simply to pull all cut shapes from the graph.
+        # There must exist a path in the graph from any one vertex to another if we want to be able to
+        # punch holes in a shape.  Ensuring this, however, by creating additional edges, does not appear to be a trivial task.
+        # However, if it can be done correctly or adequitly, then the remainder of our algorithm can proceed without any further considerations.
+        # Once we have the graph, the only remaining task is simply to pull all cut shapes from the graph.
+        # What this amounts to is visiting all cycles of the graph that do no contain any "chords."  There is one of
+        # these for every vertex of the duel plane graph, save the vertex representing the outside area.
 
     def Tessellate(self):
         # Here we find a triangle list that is a tessellation of this polygon.
