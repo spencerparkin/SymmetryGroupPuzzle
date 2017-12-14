@@ -37,14 +37,15 @@ class Polygon(object):
             for i in range(len(edge_list)):
                 old_edge = edge_list[i]
                 lerp_valueA, lerp_valueB = new_edge[0].IntersectWith(old_edge[0])
-                if 0.0 + epsilon < lerp_valueA < 1.0 - epsilon:
+                if epsilon < lerp_valueA < 1.0 - epsilon and -epsilon <= lerp_valueB <= 1.0 + epsilon:
                     point = new_edge[0].Lerp(lerp_valueA)
                     queue.append((LineSegment(new_edge[0].pointA, point), new_edge[1]))
                     queue.append((LineSegment(point, new_edge[0].pointB), new_edge[1]))
-                    del edge_list[i]
-                    point = old_edge[0].Lerp(lerp_valueB)
-                    edge_list.append((LineSegment(old_edge[0].pointA, point), old_edge[1]))
-                    edge_list.append((LineSegment(point, old_edge[0].pointB), old_edge[1]))
+                    if epsilon < lerp_valueB < 1.0 - epsilon:
+                        del edge_list[i]
+                        point = old_edge[0].Lerp(lerp_valueB)
+                        edge_list.append((LineSegment(old_edge[0].pointA, point), old_edge[1]))
+                        edge_list.append((LineSegment(point, old_edge[0].pointB), old_edge[1]))
                     break
             else:
                 edge_list.append(new_edge)
