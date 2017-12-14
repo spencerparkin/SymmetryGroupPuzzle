@@ -1,7 +1,6 @@
 # Shape.py
 
 import copy
-import math
 
 from Triangle import Triangle
 from LineSegment import LineSegment
@@ -19,7 +18,7 @@ class Shape(object):
     # some points may be repeated in the sequence.
     def __init__(self):
         self.point_list = []
-        self.triangle_list = None
+        self.triangle_list = []
 
     def Clone(self):
         return copy.deepcopy(self)
@@ -39,6 +38,9 @@ class Shape(object):
         # Once we have the graph, the only remaining task is simply to pull all cut shapes from the graph.
         # What this amounts to is visiting all cycles of the graph that do no contain any "chords."  There is one of
         # these for every vertex of the duel plane graph, save the vertex representing the outside area.
+        # Note that in the graph, there may be overlapping edges to support holes.  Regardless, to get the cut shapes,
+        # We pick an unvisited self shape edge, and then trace from it.  This visits cutting shape edges and self shape edges.
+        # Then we repeat until an unvisited self shape edge can't be found.
 
     def Tessellate(self):
         # Here we find a triangle list that is a tessellation of this polygon.
@@ -71,8 +73,8 @@ class Shape(object):
             edge = LineSegment(self.point_list[i], self.point_list[j])
             lerp_valueA = line_segment.IntersectWith(edge)
             lerp_valueB = edge.IntersectWith(line_segment)
-            if math.abs(lerp_valueA) >= epsilon and math.abs(1.0 - lerp_valueA) >= epsilon and \
-                math.abs(lerp_valueB) >= epsilon and math.abs(1.0 - lerp_valueB) >= epsilon:
+            if epsilon < lerp_valueA < 1.0 - epsilon and \
+                epsilon < lerp_valueB < 1.0 - epsilon:
                 return i
         return -1
     
