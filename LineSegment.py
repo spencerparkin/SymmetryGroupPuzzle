@@ -9,10 +9,12 @@ class LineSegment(object):
         return self.pointA + lerp_value * (self.pointB - self.pointA)
 
     def IntersectWith(self, line_segment):
-        numer = (line_segment.pointB - line_segment.pointA).Cross(self.pointA - line_segment.pointA)
+        numerA = (line_segment.pointB - line_segment.pointA).Cross(self.pointA - line_segment.pointA)
+        numerB = (line_segment.pointA - line_segment.pointB).Cross(self.pointB - line_segment.pointB)
         denom = (self.pointB - self.pointA).Cross(line_segment.pointB - line_segment.pointA)
         try:
-            lerp_value = numer / denom
+            lerp_valueA = numerA / denom
+            lerp_valueB = numerB / denom
         except ZeroDivisionError:
             return None
-        return lerp_value
+        return lerp_valueA, lerp_valueB
