@@ -28,9 +28,10 @@ class Polygon(object):
 
     def Cut(self, cutting_polygon):
         # Here we cut this polygon against the given polygon into one or more returned polygons.
+        # We don't support the case here were the given polygon would punch a hole in this polygon.
         edge_list = []
-        queue = [(edge, True) for edge in self.EdgeList()]
-        queue += [(edge, False) for edge in cutting_polygon.EdgeList()]
+        queue = [(edge, 0) for edge in self.EdgeList()]
+        queue += [(edge, 1) for edge in cutting_polygon.EdgeList()]
         epsilon = 1e-7
         while len(queue) > 0:
             new_edge = queue.pop()
@@ -49,15 +50,34 @@ class Polygon(object):
                     break
             else:
                 edge_list.append(new_edge)
-        while True:
+        def FindEdge(edge_list, code, preceding_edge=None, remove=False):
             for i in range(len(edge_list)):
                 edge = edge_list[i]
-                if edge[1]:
-                    break
-            else:
+                if edge[1] == code:
+                    if preceding_edge is None or (edge[0].pointA - preceding_edge.pointB).Length() < epsilon:
+                        if remove:
+                            del edge_list[i]
+                        return edge
+        polygon_list = []
+        while True:
+            new_edge = FindEdge(edge_list, 0, None, True)
+            if new_edge is None:
                 break
-            # TODO: Follow cycle, building up a polygon to add to the returned list.
-            #       Once constructed, remove non-cutting edges used in construction from edge list.
+            polygon_edge_list = [new_edge]
+            while True:
+                old_edge = new_edge
+                new_edge = FindEdge(edge_list, 1, old_edge)
+                if new_edge is None:
+                    new_edge = FindEdge(edge_list, 0, old_edge, True)
+                    if new_edge is None:
+                        raise Exception('Cutting algorithm failed!')
+                if new_edge == polygon_edge_list[0]:
+                    break
+                polygon_edge_list.append(new_edge)
+            polygon = Polygon()
+            polygon.point_list = [edge[0].pointA for edge in polygon_edge_list]
+            polygon_list.append(polygon)
+        return polygon_list
 
     def Tessellate(self):
         # Here we find a triangle list that is a tessellation of this polygon.

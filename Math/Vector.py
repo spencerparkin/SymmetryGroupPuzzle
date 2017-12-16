@@ -8,23 +8,23 @@ def Vector(object):
         self.x = x
         self.y = y
 
-    def __add__(self, other):
-        return Vector(self.x + other.x, self.y + other.y)
+    def __add__(self, vector):
+        return Vector(self.x + vector.x, self.y + vector.y)
 
     def __sub__(self, other):
         return Vector(self.x - other.x, self.y - other.y)
 
-    def __mul__(self, other):
-        return self.Scaled(other)
+    def __mul__(self, scalar):
+        return self.Scaled(scalar)
     
-    def __rmul__(self, other):
-        return self.Scaled(other)
+    def __rmul__(self, scalar):
+        return self.Scaled(scalar)
 
-    def Dot(self, other):
-        return self.x * other.x + self.y * other.y
+    def Dot(self, vector):
+        return self.x * vector.x + self.y * vector.y
 
-    def Cross(self, other):
-        return self.x * other.y - self.y * other.x
+    def Cross(self, vector):
+        return self.x * vector.y - self.y * vector.x
     
     def Length(self):
         return math.sqrt(self.Dot(self))
