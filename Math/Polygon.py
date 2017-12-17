@@ -2,14 +2,14 @@
 
 import copy
 
-from Triangle import Triangle
-from LineSegment import LineSegment
+from Math.Triangle import Triangle
+from Math.LineSegment import LineSegment
 
 class Polygon(object):
     # These may be convex or concave polygons in the plane.
     # The list of vertices is always ordered counter-clockwise.
-    def __init__(self):
-        self.point_list = []
+    def __init__(self, point_list = None):
+        self.point_list = point_list if point_list is not None else []
         self.triangle_list = []
 
     def Clone(self):

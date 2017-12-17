@@ -8,6 +8,12 @@ class LineSegment(object):
     def Lerp(self, lerp_value):
         return self.pointA + lerp_value * (self.pointB - self.pointA)
 
+    def Length(self):
+        return self.Direction().Length()
+
+    def Direction(self):
+        return self.pointB - self.pointA
+
     def IntersectWith(self, line_segment):
         numerA = (line_segment.pointB - line_segment.pointA).Cross(self.pointA - line_segment.pointA)
         numerB = (line_segment.pointA - line_segment.pointB).Cross(self.pointB - line_segment.pointB)

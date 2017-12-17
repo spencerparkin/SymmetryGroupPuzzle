@@ -2,7 +2,7 @@
 
 import math
 
-def Vector(object):
+class Vector(object):
     # These are just vectors in the plane.
     def __init__(self, x, y):
         self.x = x
@@ -48,7 +48,7 @@ def Vector(object):
     def Rotated(self, angle):
         sin_angle = math.sin(angle)
         cos_angle = math.cos(angle)
-        return Vector(self.x * sin_angle + self.y * cos_angle, -self.x * sin_angle + self.y * cos_angle)
+        return Vector(self.x * cos_angle - self.y * sin_angle, self.x * sin_angle + self.y * cos_angle)
     
     def Reflected(self, normal):
         parallel, orthogonal = self.Decompose(normal)

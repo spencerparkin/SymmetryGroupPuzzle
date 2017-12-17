@@ -1,9 +1,9 @@
 # Transform.py
 
-from Vector import Vector
+from Math.Vector import Vector
 
 class LinearTransform(object):
-    def __init__self(self, xAxis=Vector(1.0, 0.0), yAxis=Vector(0.0, 1.0)):
+    def __init__(self, xAxis=Vector(1.0, 0.0), yAxis=Vector(0.0, 1.0)):
         self.xAxis = xAxis
         self.yAxis = yAxis
 
