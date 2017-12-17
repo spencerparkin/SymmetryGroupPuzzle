@@ -20,6 +20,7 @@ class Window(QtGui.QOpenGLWindow):
         self.context = None
         self.polygonA = Polygon([Vector(-4.0, -4.0), Vector(2.0, -4.0), Vector(2.0, 2.0), Vector(-4.0, 2.0)])
         self.polygonB = Polygon([Vector(-2.0, -2.0), Vector(4.0, -2.0), Vector(4.0, 4.0), Vector(-2.0, 4.0)])
+        self.polygon_list = None
 
     def initializeGL(self):
         self.context = QtGui.QOpenGLContext(self)
@@ -54,18 +55,24 @@ class Window(QtGui.QOpenGLWindow):
         gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
         try:
-            glColor3f(1.0, 0.0, 0.0)
-            self.DrawPolygon(self.polygonA)
-
-            glColor3f(0.0, 0.0, 1.0)
-            self.DrawPolygon(self.polygonB)
+            if self.polygon_list:
+                glColor3f(1.0, 1.0, 1.0)
+                for polygon in self.polygon_list:
+                    self.DrawPolygon(polygon)
+            else:
+                glColor3f(1.0, 0.0, 0.0)
+                self.DrawPolygon(self.polygonA)
+                glColor3f(0.0, 0.0, 1.0)
+                self.DrawPolygon(self.polygonB)
         except Exception as ex:
             print('Exception: ' + str(ex))
 
         glFlush()
 
-    def resizeGL(self, width, height):
-        pass # glViewport(0, 0, width, height)
+    def mousePressEvent(self, event):
+        button = event.button()
+        if button == QtCore.Qt.LeftButton:
+            self.polygon_list = self.polygonA.Cut(self.polygonB)
 
     def DrawPolygon(self, polygon):
         edge_list = polygon.EdgeList()
