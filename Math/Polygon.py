@@ -52,7 +52,10 @@ class Polygon(object):
                             edge_list.append([LineSegment(point, old_edge[0].pointB), old_edge[1]])
                         break
                 if new_edge[0].IsSegment(old_edge[0]):
-                    break
+                    if new_edge[1] == 0:
+                        del edge_list[i]
+                        queue.append(new_edge)
+                        break
                 if old_edge[0].IsParallelWith(new_edge[0]):
                     break_again = False
                     for point in [new_edge[0].pointA, new_edge[0].pointB]:
