@@ -58,3 +58,16 @@ class Vector(object):
         parallel = normal.Scaled(self.Dot(normal))
         orthogonal = self - parallel
         return parallel, orthogonal
+
+    def IsPoint(self, point, epsilon=1e-7):
+        return True if (self - point).Length() < epsilon else False
+
+    def Angle(self, vector):
+        return math.acos(self.Normalized().Dot(vector.Normalized()))
+
+    def SignedAngle(self, vector):
+        angle = self.Angle(vector)
+        cross = self.Cross(vector)
+        if cross < 0.0:
+            angle = -angle
+        return angle
