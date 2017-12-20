@@ -35,6 +35,10 @@ class LinearTransform(object):
         elif isinstance(thing, Vector):
             return self.Transform(thing)
 
+    def Reflection(self, normal):
+        self.xAxis = Vector(1.0, 0.0).Reflected(normal)
+        self.yAxis = Vector(0.0, 1.0).Reflected(normal)
+
     def Rotation(self, angle):
         self.xAxis = Vector(1.0, 0.0).Rotated(angle)
         self.yAxis = Vector(0.0, 1.0).Rotated(angle)
@@ -62,6 +66,12 @@ class AffineTransform(object):
 
     def Transform(self, vector):
         return self.linear_transform * vector + self.translation
+
+    def Rotation(self, point, angle):
+        pass
+
+    def Reflection(self, point, normal):
+        pass
 
     def RigidMotion(self, angle, translation):
         self.linear_transform.Rotation(angle)
