@@ -1,7 +1,7 @@
 # Inverval.py
 
 class CompactInterval(object):
-    def __init__(self, min_point, max_point):
+    def __init__(self, min_point=0.0, max_point=0.0):
         self.min_point = min_point
         self.max_point = max_point
 

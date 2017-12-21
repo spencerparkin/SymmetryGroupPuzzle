@@ -5,7 +5,7 @@ import random
 
 from PIL import Image
 from Math.Polygon import Polygon
-from Puzzle.Render import Renderer
+from Render import Renderer
 
 class Puzzle(object):
     def __init__(self):
@@ -30,7 +30,8 @@ class Puzzle(object):
         with Image.open(self.base_image_file) as base_image:
             base_image_data = base_image.convert('RGB')
 
-            target_image = Image.new('RGB', base_image.width, base_image.height)
+            size = (base_image.width, base_image.height)
+            target_image = Image.new('RGB', size)
             target_image_data = target_image.load()
 
             renderer = Renderer(base_image, base_image_data, target_image, target_image_data)
@@ -40,9 +41,9 @@ class Puzzle(object):
                 (-10.0, -10.0, 0.0, 0.0),
                 (10.0, -10.0, 1.0, 0.0),
                 (-10.0, 10.0, 0.0, 1.0),
-                (10.0, -10.0, 1.0, 0.0),
-                (10.0, 10.0, 1.0, 1.0),
-                (-10.0, 10.0, 0.0, 1.0)
+                #(10.0, -10.0, 1.0, 0.0),
+                #(10.0, 10.0, 1.0, 1.0),
+                #(-10.0, 10.0, 0.0, 1.0)
             ]
 
             for shape in self.shape_list:
@@ -95,5 +96,5 @@ def RandomImage(image_dir):
 
 if __name__ == '__main__':
     puzzle = Puzzle()
-    puzzle.base_image_file = RandomImage(r'C:\SymmetryGroupPuzzle\Images')
-    puzzle.GenerateImageFile(r'C:\SymmetryGroupPuzzle\Images\result.png')
+    puzzle.base_image_file = RandomImage(r'C:\dev\SymmetryGroupPuzzle\Images')
+    puzzle.GenerateImageFile(r'C:\dev\SymmetryGroupPuzzle\Images\result.png')
