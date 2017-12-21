@@ -4,7 +4,7 @@ import math
 
 class Vector(object):
     # These are just vectors in the plane.
-    def __init__(self, x, y):
+    def __init__(self, x=0.0, y=0.0):
         self.x = x
         self.y = y
 

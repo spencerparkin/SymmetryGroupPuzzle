@@ -1,12 +1,21 @@
 # Transform.py
 
+import copy
+
 from Math.Vector import Vector
 
 class LinearTransform(object):
-    def __init__(self, xAxis=Vector(1.0, 0.0), yAxis=Vector(0.0, 1.0)):
-        self.xAxis = xAxis
-        self.yAxis = yAxis
+    def __init__(self, xAxis=None, yAxis=None):
+        self.xAxis = xAxis if xAxis is not None else Vector(1.0, 0.0)
+        self.yAxis = yAxis if yAxis is not None else Vector(0.0, 1.0)
 
+    def Clone(self):
+        return copy.deepcopy(self)
+    
+    def Identity(self):
+        self.xAxis = Vector(1.0, 0.0)
+        self.yAxis = Vector(0.0, 1.0)
+    
     def Determinant(self):
         return self.xAxis.Cross(self.yAxis)
 
@@ -56,6 +65,13 @@ class AffineTransform(object):
         self.linear_transform = LinearTransform(xAxis, yAxis)
         self.translation = translation
 
+    def Clone(self):
+        return copy.deepcopy(self)
+
+    def Identity(self):
+        self.linearTransform.Identity()
+        self.translation = Vector(0.0, 0.0)
+
     def Inverted(self):
         inverse = AffineTransform()
         inverse.linear_transform = self.linear_transform.Inverted()
@@ -72,6 +88,10 @@ class AffineTransform(object):
 
     def Reflection(self, point, normal):
         pass
+
+    def Translation(self, translation):
+        self.linear_transform.Identity()
+        self.translation = translation
 
     def RigidMotion(self, angle, translation):
         self.linear_transform.Rotation(angle)

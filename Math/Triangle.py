@@ -8,7 +8,7 @@ class Triangle(object):
         self.vertex_list = [vertexA, vertexB, vertexC]
 
     def SignedArea(self):
-        return (self.vertex[1] - self.vertex[0]).Cross(self.vertex[2] - self.vertex[0]) / 2.0
+        return (self.vertex_list[1] - self.vertex_list[0]).Cross(self.vertex_list[2] - self.vertex_list[0]) / 2.0
 
     def ContainsPoint(self, point):
         for i in range(3):

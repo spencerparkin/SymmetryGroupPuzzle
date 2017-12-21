@@ -42,12 +42,13 @@ class LineSegment(object):
             return None, None
         return lerp_valueA, lerp_valueB
 
-    def IntersectionPoint(self, line_segment):
+    def IntersectionPoint(self, line_segment, epsilon=1e-7):
         lerp_valueA, lerp_valueB = self.IntersectWith(line_segment)
-        if lerp_valueA is not None and 0.0 <= lerp_valueA <= 1.0:
-            return self.Lerp(line_segment)
+        if lerp_valueA is not None and lerp_valueB is not None:
+            if -epsilon <= lerp_valueA <= 1.0 + epsilon and -epsilon <= lerp_valueB <= 1.0 + epsilon:
+                return self.Lerp(lerp_valueA)
 
-    def ContainsPointAt(self, point, epsilon=1e-7):
+    def LerpValueOf(self, point, epsilon=1e-7):
         vectorA = self.pointB - self.pointA
         vectorB = point - self.pointA
         cross = vectorA.Cross(vectorB)
@@ -57,7 +58,7 @@ class LineSegment(object):
         return lerp_value
 
     def ContainsPoint(self, point, epsilon=1e-7):
-        lerp_value = self.ContainsPointAt(point, epsilon)
+        lerp_value = self.LerpValueOf(point, epsilon)
         if lerp_value is None:
             return False
         if -epsilon < lerp_value < 1.0 + epsilon:

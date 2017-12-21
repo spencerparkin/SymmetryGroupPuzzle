@@ -14,4 +14,11 @@ class CompactInterval(object):
     def LerpValue(self, point):
         return (point - self.min_point) / (self.max_point - self.min_point)
 
-    # Intersect?  Union?  Etc.
+    def Intersection(self, intervalA, intervalB):
+        pass
+        
+    def Union(self, intervalA, intervalB):
+        pass
+    
+    def Difference(self, intervalA, intervalB):
+        pass
