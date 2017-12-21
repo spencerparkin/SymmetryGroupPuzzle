@@ -1,6 +1,6 @@
 # Test.py
 
-# Here we test various algorithms and data-structures to be used in the web-app.
+# Here we test various algorithms and data-structures to be used in the app.
 # It is a means to an end, not an end in and of itself.
 
 import sys
