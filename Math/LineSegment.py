@@ -24,11 +24,12 @@ class LineSegment(object):
             return True
         return False
 
-    def IsSegment(self, line_segment, epsilon=1e-7):
+    def IsSegment(self, line_segment, epsilon=1e-7, either_direction=True):
         if self.pointA.IsPoint(line_segment.pointA, epsilon) and self.pointB.IsPoint(line_segment.pointB, epsilon):
             return True
-        if self.pointA.IsPoint(line_segment.pointB, epsilon) and self.pointB.IsPoint(line_segment.pointA, epsilon):
-            return True
+        if either_direction:
+            if self.pointA.IsPoint(line_segment.pointB, epsilon) and self.pointB.IsPoint(line_segment.pointA, epsilon):
+                return True
         return False
 
     def IntersectWith(self, line_segment):

@@ -33,9 +33,7 @@ class Polygon(object):
                     area = triangle.SignedArea()
                     if area > 0:
                         line_segment = LineSegment(polygon.point_list[i], polygon.point_list[k])
-                        for u in range(len(polygon.point_list)):
-                            v = (u + 1) % len(polygon.point_list)
-                            edge = LineSegment(polygon.point_list[u], polygon.point_list[v])
+                        for edge in self.GenerateEdges():
                             point = line_segment.IntersectionPoint(edge)
                             if point is not None and not line_segment.EitherPointIs(point):
                                 break
@@ -55,10 +53,77 @@ class Polygon(object):
         # Return two lists of polygons: those found inside the given polygon, and
         # then those found outside of it.  Note that we do not support the ability
         # for the cutting polygon to punch a "hole" in this polygon.
-        pass
+        if len(polygon.triangle_list) == 0:
+            polygon.Tessellate()
+        #...
+    
+    def GenerateEdges(self):
+        for i in range(len(self.point_list)):
+            j = (i + 1) % len(self.point_list)
+            yield LineSegment(self.point_list[i], self.point_list[j])
     
     def Transformed(self, transform):
         polygon = Polygon()
         for point in self.point_list:
             polygon.poing_list.append(transform.Transform(point))
         return polygon
+
+''' Actualy, I think what follows is crap...delete it later...
+class Graph(object):
+    def __init__(self):
+        self.edge_list = []
+    
+    def AddEdge(self, edge, label, replace_existing=True):
+        queue = [(edge, label)]
+        while len(queue) > 0:
+            edge = queue.pop()
+            for i, existing_edge in enumerate(self.edge_list):
+                if edge[0].IsSegment(existing_edge[0]):
+                    if replace_existing:
+                        self.edge_list[i] = edge
+                    break
+            else:
+                for i, existing_edge in enumerate(self.edge_list):
+                    found = False
+                    for point in [existing_edge[0].pointA, existing_edge[0].pointB]:
+                        if not edge[0].EitherPointIs(point) and edge[0].ContainsPoint(point):
+                            queue.append((LineSegment(edge[0].pointA, point), edge[1]))
+                            queue.append((LineSegment(point, edge[0].pointB), edge[1]))
+                            found = True
+                            break
+                    else:
+                        for point in [edge[0].pointA, edge[0].pointB]:
+                            if not existing_edge[0].EitherPointIs(point) and existing_edge[0].ContainsPoint(point):
+                                del self.edge_list[i]
+                                self.edge_list.append((LineSegment(existing_edge[0].pointA, point), existing_edge[1]))
+                                self.edge_list.append((LineSegment(point, existing_edge[0].pointB), existing_edge[1]))
+                                found = True
+                                break
+                    if found:
+                        break
+                else:
+                    for i, existing_edge in enumerate(self.edge_list):
+                        point = edge[0].IntersectionPoint(existing_edge[0])
+                        if point is not None:
+                            queue.append((LineSegment(edge[0].pointA, point), edge[1]))
+                            queue.append((LineSegment(point, edge[0].pointB), edge[1]))
+                            del self.edge_list[i]
+                            self.edge_list.append((LineSegment(existing_edge[0].pointA, point), existing_edge[1]))
+                            self.edge_list.append((LineSegment(point, existing_edge[0].pointB), existing_edge[1]))
+                            break
+    
+    def FindEdgeWithLabel(self, label, remove=True):
+        for i, edge in enumerate(self.edge_list):
+            if edge[1] == label:
+                if remove:
+                    del self.edge_list[i]
+                return edge
+    
+    def GenerateEdgesWithPoint(self, point):
+        for edge in self.edge_list:
+            if edge[0].pointA.IsPoint(point):
+                yield edge
+            elif edge[0].pointB.IsPoint(point):
+                edge[0].Negate()
+                yield edge
+'''
