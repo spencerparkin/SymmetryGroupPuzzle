@@ -3,6 +3,7 @@
 import math
 import random
 
+from OpenGL.GL import *
 from Math.Vector import Vector
 from Math.Polygon import Polygon
 from Math.Transform import AffineTransform
@@ -71,9 +72,7 @@ class Shape(object):
         return self.polygon.Transformed(self.transform)
     
     def Render(self, rectangle):
-        from OpenGL.GL import *
-        if len(self.polygon.triangle_list) == 0:
-            self.polygon.Tessellate()
+        self.polygon.TessellateIfNeeded()
         glBegin(GL_TRIANGLES)
         try:
             for triangle in self.polygon.triangle_list:

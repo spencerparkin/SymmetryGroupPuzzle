@@ -16,14 +16,21 @@ class Window(QtGui.QOpenGLWindow):
         super().__init__(parent)
         self.setTitle('Symmetry Group Puzzle')
         self.context = None
-        self.polygon = Polygon([
-            Vector(-4.0, -4.0),
-            Vector(4.0, -4.0),
-            Vector(4.0, 4.0),
-            Vector(3.0, 4.0),
-            Vector(3.0, 0.0),
-            Vector(2.0, 0.0),
-            Vector(-4.0, 4.0)
+        self.polygonA = Polygon([
+            Vector(-10.0, -8.0),
+            Vector(10.0, -8.0),
+            Vector(10.0, -6.0),
+            Vector(-10.0, -6.0)
+        ])
+        self.polygonB = Polygon([
+            Vector(-8.0, -10.0),
+            Vector(-6.0, -10.0),
+            Vector(-6.0, 2.0),
+            Vector(6.0, 2.0),
+            Vector(6.0, -10.0),
+            Vector(8.0, -10.0),
+            Vector(8.0, 4.0),
+            Vector(-8.0, 4.0)
         ])
 
     def initializeGL(self):
@@ -45,7 +52,7 @@ class Window(QtGui.QOpenGLWindow):
         height = viewport[3]
 
         aspectRatio = float(width) / float(height)
-        length = 5.0
+        length = 15.0
 
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
@@ -58,25 +65,19 @@ class Window(QtGui.QOpenGLWindow):
         glLoadIdentity()
         gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-        glBegin(GL_TRIANGLES)
-        try:
-            for triangle in self.polygon.triangle_list:
-                r = float(random.randint(0, 255)) / 255.0
-                g = float(random.randint(0, 255)) / 255.0
-                b = float(random.randint(0, 255)) / 255.0
-                glColor3f(r, g, b)
-                for i in range(3):
-                    point = triangle.vertex_list[i]
-                    glVertex2f(point.x, point.y)
-        finally:
-            glEnd()
+        glColor3f(1.0, 0.0, 0.0)
+        self.polygonA.RenderTriangles()
+
+        glColor3f(0.0, 1.0, 0.0)
+        self.polygonB.RenderTriangles()
 
         glFlush()
 
     def mousePressEvent(self, event):
         button = event.button()
         if button == QtCore.Qt.LeftButton:
-            self.polygon.Tessellate()
+            self.polygonA.Tessellate()
+            self.polygonB.Tessellate()
             self.update()
 
 def ExceptionHook(cls, exc, tb):
