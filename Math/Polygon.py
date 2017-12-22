@@ -48,14 +48,41 @@ class Polygon(object):
                 return True
         return False
     
-    def CutAgainst(self, polygon):
+    def CutAgainst(self, cutting_polygon):
         # Split this polygon against the given polygon into one or more polygons.
         # Return two lists of polygons: those found inside the given polygon, and
         # then those found outside of it.  Note that we do not support the ability
         # for the cutting polygon to punch a "hole" in this polygon.
-        if len(polygon.triangle_list) == 0:
-            polygon.Tessellate()
-        #...
+        inside_list = []
+        outside_list = []
+        inside_polygon, outside_polygon = self._SplitAgainst(cutting_polygon)
+        if inside_polygon is not None and outside_polygon is not None:
+            inside_queue = [inside_polygon]
+            outside_queue = [outside_polygon]
+            while len(inside_queue) > 0 or len(outside_queue) > 0:
+                for queue in [inside_queue, outside_queue]:
+                    polygon = queue.pop()
+                    inside_polygon, outside_polygon = polygon._SplitAgainst(cutting_polygon)
+                    if inside_polygon is not None and outside_polygon is not None:
+                        inside_queue.append(inside_polygon)
+                        outside_queue.append(outside_polygon)
+                    elif queue is inside_queue:
+                        inside_list.append(polygon)
+                    elif queue is outside_queue:
+                        outside_list.append(polygon)
+        else:
+            # In this case, don't we still need to determine which side we're on?
+            return None, None
+        return inside_list, outside_list
+
+    def _SplitAgainst(self, cutting_polygon):
+        # Split this polygon against the given polygon into two polygons: one found
+        # on the inside of the cutting polygon, and the other on the outside.  These
+        # two polygons are not necessarily guaranteed to be completely inside or
+        # outside the cutting polygon, respectively, but the cut is well defined in
+        # that the two polygons are on the proper side of the cutting polygon in a
+        # neighborhood of the cut line.  If no cut occurs, then (None, None) is returned.
+        pass
     
     def GenerateEdges(self):
         for i in range(len(self.point_list)):
@@ -67,63 +94,3 @@ class Polygon(object):
         for point in self.point_list:
             polygon.poing_list.append(transform.Transform(point))
         return polygon
-
-''' Actualy, I think what follows is crap...delete it later...
-class Graph(object):
-    def __init__(self):
-        self.edge_list = []
-    
-    def AddEdge(self, edge, label, replace_existing=True):
-        queue = [(edge, label)]
-        while len(queue) > 0:
-            edge = queue.pop()
-            for i, existing_edge in enumerate(self.edge_list):
-                if edge[0].IsSegment(existing_edge[0]):
-                    if replace_existing:
-                        self.edge_list[i] = edge
-                    break
-            else:
-                for i, existing_edge in enumerate(self.edge_list):
-                    found = False
-                    for point in [existing_edge[0].pointA, existing_edge[0].pointB]:
-                        if not edge[0].EitherPointIs(point) and edge[0].ContainsPoint(point):
-                            queue.append((LineSegment(edge[0].pointA, point), edge[1]))
-                            queue.append((LineSegment(point, edge[0].pointB), edge[1]))
-                            found = True
-                            break
-                    else:
-                        for point in [edge[0].pointA, edge[0].pointB]:
-                            if not existing_edge[0].EitherPointIs(point) and existing_edge[0].ContainsPoint(point):
-                                del self.edge_list[i]
-                                self.edge_list.append((LineSegment(existing_edge[0].pointA, point), existing_edge[1]))
-                                self.edge_list.append((LineSegment(point, existing_edge[0].pointB), existing_edge[1]))
-                                found = True
-                                break
-                    if found:
-                        break
-                else:
-                    for i, existing_edge in enumerate(self.edge_list):
-                        point = edge[0].IntersectionPoint(existing_edge[0])
-                        if point is not None:
-                            queue.append((LineSegment(edge[0].pointA, point), edge[1]))
-                            queue.append((LineSegment(point, edge[0].pointB), edge[1]))
-                            del self.edge_list[i]
-                            self.edge_list.append((LineSegment(existing_edge[0].pointA, point), existing_edge[1]))
-                            self.edge_list.append((LineSegment(point, existing_edge[0].pointB), existing_edge[1]))
-                            break
-    
-    def FindEdgeWithLabel(self, label, remove=True):
-        for i, edge in enumerate(self.edge_list):
-            if edge[1] == label:
-                if remove:
-                    del self.edge_list[i]
-                return edge
-    
-    def GenerateEdgesWithPoint(self, point):
-        for edge in self.edge_list:
-            if edge[0].pointA.IsPoint(point):
-                yield edge
-            elif edge[0].pointB.IsPoint(point):
-                edge[0].Negate()
-                yield edge
-'''
