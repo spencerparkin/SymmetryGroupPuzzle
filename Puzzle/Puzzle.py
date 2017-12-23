@@ -11,8 +11,9 @@ from Math.Transform import AffineTransform
 class Puzzle(object):
     # In order to support non-trivial topologies (i.e., shapes with "holes" in them),
     # we'll have to use polygons that self-touch or that are self-tangent.
-    def __init__(self, cutter_list):
+    def __init__(self, cutter_list, window):
         self.cutter_list = cutter_list
+        self.window = window
         self.MakeInitialShapeList()
     
     def IsSolved(self):
@@ -62,6 +63,10 @@ class Puzzle(object):
             self.ApplyCuttingShape()
             count -= 1
 
+    def Render(self):
+        for shape in self.shape_list:
+            shape.Render(self.window)
+
 class Shape(object):
     def __init__(self, polygon, transform=None):
         self.polygon = polygon
@@ -71,14 +76,14 @@ class Shape(object):
     def Transformed(self):
         return self.polygon.Transformed(self.transform)
     
-    def Render(self, rectangle):
+    def Render(self, window):
         self.polygon.TessellateIfNeeded()
         glBegin(GL_TRIANGLES)
         try:
             for triangle in self.polygon.triangle_list:
                 for i in range(3):
                     point = triangle.vertex_list[i]
-                    u, v = rectangle.CalcUVs(point)
+                    u, v = window.CalcUVs(point)
                     glTexCoord2f(u, v)
                     point = self.transform * point
                     glVertex2f(point.x, point.y)

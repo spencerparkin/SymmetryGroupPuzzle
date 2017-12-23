@@ -32,6 +32,7 @@ class Vector(object):
     def Polar(self, radius, angle):
         self.x = radius * math.cos(angle)
         self.y = radius * math.sin(angle)
+        return self
     
     def Negated(self):
         return Vector(-self.x, -self.y)

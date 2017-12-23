@@ -1,41 +1,21 @@
 # Game.py
 
 import sys
-import math
-import random
-import traceback
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from PyQt5 import QtGui, QtCore, QtWidgets
-from Math.Polygon import Polygon
+from Math.Rectangle import Rectangle
 from Math.Vector import Vector
+from Puzzle.Level import MakePuzzle
 
 class Window(QtGui.QOpenGLWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setTitle('Symmetry Group Puzzle')
         self.context = None
-        self.polygonA = Polygon([
-            Vector(-10.0, -8.0),
-            Vector(10.0, -8.0),
-            Vector(10.0, -6.0),
-            Vector(-10.0, -6.0)
-        ])
-        self.polygonB = Polygon([
-            Vector(-8.0, -10.0),
-            Vector(-6.0, -10.0),
-            Vector(-6.0, 2.0),
-            Vector(6.0, 2.0),
-            Vector(6.0, -10.0),
-            Vector(8.0, -10.0),
-            Vector(8.0, 4.0),
-            Vector(-8.0, 4.0)
-        ])
-        self.polygonA.Tessellate()
-        self.polygonB.Tessellate()
-        self.inside_list = []
-        self.outside_list = []
+        self.level = 1
+        self.puzzle = MakePuzzle(self.level)
 
     def initializeGL(self):
         self.context = QtGui.QOpenGLContext(self)
@@ -55,45 +35,37 @@ class Window(QtGui.QOpenGLWindow):
         width = viewport[2]
         height = viewport[3]
 
-        aspectRatio = float(width) / float(height)
-        length = 15.0
+        screen_rectangle = Rectangle(Vector(0.0, 0.0), Vector(float(width), float(height)))
+        adjusted_window = self.puzzle.window.Clone()
+        adjusted_window.ContractToMatchAspectRatioOf(screen_rectangle)
 
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        if aspectRatio > 1.0:
-            glOrtho(-length * aspectRatio, length * aspectRatio, -length, length, -1.0, 100.0)
-        else:
-            glOrtho(-length, length, -length / aspectRatio, length / aspectRatio, -1.0, 100.0)
+        gluOrtho2D(adjusted_window.min_point.x,
+                   adjusted_window.max_point.x,
+                   adjusted_window.min_point.y,
+                   adjusted_window.max_point.y)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-        if len(self.inside_list) > 0:
-            glColor3f(1.0, 1.0, 1.0)
-            for polygon in self.inside_list:
-                polygon.TesselateIfNeeded()
-                polygon.RenderTriangles()
-
-        if len(self.outside_list) > 0:
-            glColor3f(0.5, 0.5, 0.5)
-            for polygon in self.outside_list:
-                polygon.TesselateIfNeeded()
-                polygon.RenderTriangles()
-
-        if len(self.inside_list) == 0 and len(self.outside_list) == 0:
-            glColor3f(1.0, 0.0, 0.0)
-            self.polygonA.RenderTriangles()
-            glColor3f(0.0, 1.0, 0.0)
-            self.polygonB.RenderTriangles()
+        # TODO: Bind texture here.
+        #self.puzzle.Render()
 
         glFlush()
 
     def mousePressEvent(self, event):
-        button = event.button()
-        if button == QtCore.Qt.LeftButton:
-            self.inside_list, self.outside_list = self.polygonA.CutAgainst(self.polygonB)
-            self.update()
+        pass
+
+    # TODO: Highlight nearest cutter to mouse at all times.
+    #       Use mouse wheel for rotations; clicks for reflections.
+
+    # TODO: Let them choose any picture for any puzzle.
+    #       Let them skip any level and go to the next.
+
+    # TODO: Support puzzle saving and loading.  The puzzle object
+    #       should serialize and deserialize to/from JSON.
 
 def ExceptionHook(cls, exc, tb):
     sys.__excepthook__(cls, exc, tb)
