@@ -72,6 +72,7 @@ class Shape(object):
         self.polygon = polygon
         # There is some concern that this will suffer from accumulated round-off error.
         self.transform = transform if transform is not None else AffineTransform()
+        self.animation_transform = None # TODO: Think about this.
     
     def Transformed(self):
         return self.polygon.Transformed(self.transform)
