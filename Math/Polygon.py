@@ -27,12 +27,14 @@ class Polygon(object):
         # way of knowing if it is still valid.  Vertices may have
         # been added or removed since it was generated.
         if len(self.triangle_list) == 0:
-            self.Tesselate()
+            self.Tessellate()
 
     def Tessellate(self, epsilon=1e-7):
         if len(self.point_list) < 3:
             return None
         polygon = self.Clone()
+        # The correctness of our algorithm will depend on there being no redundant vertices.
+        polygon.RemoveAllRedundantVertices()
         self.triangle_list = []
         while True:
             if len(polygon.point_list) == 3:
@@ -89,15 +91,16 @@ class Polygon(object):
             outside_queue = [outside_polygon]
             while len(inside_queue) > 0 or len(outside_queue) > 0:
                 for queue in [inside_queue, outside_queue]:
-                    polygon = queue.pop()
-                    inside_polygon, outside_polygon = polygon._SplitAgainst(cutting_polygon)
-                    if inside_polygon is not None and outside_polygon is not None:
-                        inside_queue.append(inside_polygon)
-                        outside_queue.append(outside_polygon)
-                    elif queue is inside_queue:
-                        inside_list.append(polygon)
-                    elif queue is outside_queue:
-                        outside_list.append(polygon)
+                    if len(queue) > 0:
+                        polygon = queue.pop()
+                        inside_polygon, outside_polygon = polygon._SplitAgainst(cutting_polygon)
+                        if inside_polygon is not None and outside_polygon is not None:
+                            inside_queue.append(inside_polygon)
+                            outside_queue.append(outside_polygon)
+                        elif queue is inside_queue:
+                            inside_list.append(polygon)
+                        elif queue is outside_queue:
+                            outside_list.append(polygon)
         else:
             # In this case, don't we still need to determine which side we're on?
             return None, None
@@ -115,11 +118,18 @@ class Polygon(object):
             if self.ContainsPointOnEdge(cutting_edge.pointA):
                 intersection_point_list.append(cutting_edge.pointA)
             else:
+                hit_list = []
                 for edge in self.GenerateEdges():
                     point = edge.IntersectionPoint(cutting_edge)
                     if point is not None and not cutting_edge.EitherPointIs(point):
-                        intersection_point_list.append(point)
-                        break
+                        for hit in hit_list:
+                            if hit[0].IsPoint(point):
+                                break
+                        else:
+                            lerp_value = cutting_edge.LerpValueOf(point)
+                            hit_list.append((point, lerp_value))
+                hit_list.sort(key = lambda hit: hit[1])
+                intersection_point_list += [hit[0] for hit in hit_list]
         self_clone = self.Clone()
         cutter_clone = cutting_polygon.Clone()
         for point in intersection_point_list:
@@ -155,7 +165,7 @@ class Polygon(object):
                 outside_polygon = Polygon()
                 for k in CyclicIteration(cut_stop, cut_start, len(cutter_clone.point_list), -1):
                     outside_polygon.point_list.append(cutter_clone.point_list[k])
-                for k in CyclicIteration(stop, start, len(self_clone.point_list), -1):
+                for k in CyclicIteration(stop, start, len(self_clone.point_list)):
                     outside_polygon.point_list.append(self_clone.point_list[k])
                 return inside_polygon, outside_polygon
         return None, None
@@ -169,10 +179,20 @@ class Polygon(object):
             if edge.ContainsPoint(point, epsilon):
                 self.point_list.insert(j, point)
                 return True
-        return False
+        raise Exception('Cannot add vertex without altering polygon geometry.')
 
     def RemoveAllRedundantVertices(self):
-        pass # Remove all cases of 3 or more collinear points.
+        # Remove all cases of 3 or more collinear points.
+        while True:
+            for i in range(len(self.point_list)):
+                j = (i + 1) % len(self.point_list)
+                k = (i + 2) % len(self.point_list)
+                triangle = Triangle(self.point_list[i], self.point_list[j], self.point_list[k])
+                if triangle.IsDegenerate():
+                    del self.point_list[j]
+                    break
+            else:
+                break
 
     def FindVertex(self, point, epsilon=1e-7):
         for i in range(len(self.point_list)):

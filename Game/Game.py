@@ -32,6 +32,10 @@ class Window(QtGui.QOpenGLWindow):
             Vector(8.0, 4.0),
             Vector(-8.0, 4.0)
         ])
+        self.polygonA.Tessellate()
+        self.polygonB.Tessellate()
+        self.inside_list = []
+        self.outside_list = []
 
     def initializeGL(self):
         self.context = QtGui.QOpenGLContext(self)
@@ -65,19 +69,30 @@ class Window(QtGui.QOpenGLWindow):
         glLoadIdentity()
         gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-        glColor3f(1.0, 0.0, 0.0)
-        self.polygonA.RenderTriangles()
+        if len(self.inside_list) > 0:
+            glColor3f(1.0, 1.0, 1.0)
+            for polygon in self.inside_list:
+                polygon.TesselateIfNeeded()
+                polygon.RenderTriangles()
 
-        glColor3f(0.0, 1.0, 0.0)
-        self.polygonB.RenderTriangles()
+        if len(self.outside_list) > 0:
+            glColor3f(0.5, 0.5, 0.5)
+            for polygon in self.outside_list:
+                polygon.TesselateIfNeeded()
+                polygon.RenderTriangles()
+
+        if len(self.inside_list) == 0 and len(self.outside_list) == 0:
+            glColor3f(1.0, 0.0, 0.0)
+            self.polygonA.RenderTriangles()
+            glColor3f(0.0, 1.0, 0.0)
+            self.polygonB.RenderTriangles()
 
         glFlush()
 
     def mousePressEvent(self, event):
         button = event.button()
         if button == QtCore.Qt.LeftButton:
-            self.polygonA.Tessellate()
-            self.polygonB.Tessellate()
+            self.inside_list, self.outside_list = self.polygonA.CutAgainst(self.polygonB)
             self.update()
 
 def ExceptionHook(cls, exc, tb):
