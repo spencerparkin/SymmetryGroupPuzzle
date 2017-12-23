@@ -51,6 +51,10 @@ class Window(QtGui.QOpenGLWindow):
         gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
         # TODO: Bind texture here.
+        # TODO: Draw the entire texture across the whole screen.
+        # TODO: Draw the cutter shapes black.
+        # TODO: Now render puzzle over the black.  The black serves to show what's cut out of the background.
+
         #self.puzzle.Render()
 
         glFlush()
