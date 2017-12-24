@@ -8,6 +8,7 @@ from PyQt5 import QtGui, QtCore, QtWidgets
 from Math.Rectangle import Rectangle
 from Math.Vector import Vector
 from Puzzle.Level import MakePuzzle
+from Puzzle.Texture import Texture
 
 class Window(QtGui.QOpenGLWindow):
     def __init__(self, parent=None):
@@ -16,16 +17,17 @@ class Window(QtGui.QOpenGLWindow):
         self.context = None
         self.level = 1
         self.puzzle = MakePuzzle(self.level)
+        self.texture = Texture(r'C:\SymmetryGroupPuzzle\Images\image0.png')
 
     def initializeGL(self):
-        self.context = QtGui.QOpenGLContext(self)
-        format = QtGui.QSurfaceFormat()
-        self.context.setFormat(format)
-        self.context.create()
-        self.context.makeCurrent(self)
+        #self.context = QtGui.QOpenGLContext(self)
+        #format = QtGui.QSurfaceFormat()
+        #self.context.setFormat(format)
+        #self.context.create()
+        #self.context.makeCurrent(self)
 
         glShadeModel(GL_SMOOTH)
-        glEnable(GL_DEPTH_TEST)
+        glDisable(GL_DEPTH_TEST)
         glClearColor(0.7, 0.7, 0.7, 0.0)
 
     def paintGL(self):
@@ -48,16 +50,37 @@ class Window(QtGui.QOpenGLWindow):
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-        # TODO: Bind texture here.
-        # TODO: Draw the entire texture across the whole screen.
-        # TODO: Draw the cutter shapes black.
-        # TODO: Now render puzzle over the black.  The black serves to show what's cut out of the background.
+        self.texture.Bind()
+        glBegin(GL_QUADS)
+        try:
+            glTexCoord2f(0.0, 0.0)
+            glVertex2f(self.puzzle.window.min_point.x, self.puzzle.window.min_point.y)
+            glTexCoord2f(1.0, 0.0)
+            glVertex2f(self.puzzle.window.max_point.x, self.puzzle.window.min_point.y)
+            glTexCoord2f(1.0, 1.0)
+            glVertex2f(self.puzzle.window.max_point.x, self.puzzle.window.max_point.y)
+            glTexCoord2f(0.0, 1.0)
+            glVertex2f(self.puzzle.window.min_point.x, self.puzzle.window.max_point.y)
+        finally:
+            glEnd()
 
-        #self.puzzle.Render()
+        # I'm almost certain that I'm not mis-using OpenGL here, but these lines,
+        # uncommented, cause some undesirable behavior that I think is a bug with
+        # however OpenGL is bound in Python.  What a pain in the ass.  I've never
+        # seen such crappy behavior like this while writing a C++/OpenGL application,
+        # of which I've written about a billion.  Python with OpenGL sucks like crap.
+        # Maybe I'm just not setting it up all correctly?  I don't know.
+        #glDisable(GL_TEXTURE_2D)
+        #self.puzzle.RenderShadow()
+
+        self.texture.Bind()
+        self.puzzle.RenderShapes()
 
         glFlush()
+
+    def resizeGL(self, width, height):
+        pass # glViewport(0, 0, width, height)
 
     def mousePressEvent(self, event):
         pass

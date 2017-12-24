@@ -20,6 +20,9 @@ class Vector(object):
     def __rmul__(self, scalar):
         return self.Scaled(scalar)
 
+    def __neg__(self):
+        return self.Negated()
+
     def Dot(self, vector):
         return self.x * vector.x + self.y * vector.y
 
@@ -72,3 +75,8 @@ class Vector(object):
         if cross < 0.0:
             angle = -angle
         return angle
+
+    def Lerp(self, vectorA, vectorB, lerp_value):
+        lerp_vector = vectorA + lerp_value * (vectorB - vectorA)
+        self.x = lerp_vector.x
+        self.y = lerp_vector.y

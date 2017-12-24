@@ -30,7 +30,7 @@ class Puzzle(object):
             polygon = queue.pop()
             for shape in self.shape_list:
                 inside_list, outside_list = polygon.CutAgainst(shape.polygon)
-                if len(inside_list) > 0:
+                if inside_list is not None and len(inside_list) > 0:
                     for outside_polygon in outside_list:
                         queue.append(outside_polygon)
                     break
@@ -63,7 +63,11 @@ class Puzzle(object):
             self.ApplyCuttingShape()
             count -= 1
 
-    def Render(self):
+    def RenderShadow(self):
+        for cutter in self.cutter_list:
+            cutter.Render('shadow')
+
+    def RenderShapes(self):
         for shape in self.shape_list:
             shape.Render(self.window)
 
@@ -72,13 +76,14 @@ class Shape(object):
         self.polygon = polygon
         # There is some concern that this will suffer from accumulated round-off error.
         self.transform = transform if transform is not None else AffineTransform()
-        self.animation_transform = None # TODO: Think about this.
+        # The render transform will lag behind the actual transform for animation purposes.
+        self.render_transform = AffineTransform()
     
     def Transformed(self):
         return self.polygon.Transformed(self.transform)
     
     def Render(self, window):
-        self.polygon.TessellateIfNeeded()
+        self.polygon.TesselateIfNeeded()
         glBegin(GL_TRIANGLES)
         try:
             for triangle in self.polygon.triangle_list:
@@ -86,7 +91,7 @@ class Shape(object):
                     point = triangle.vertex_list[i]
                     u, v = window.CalcUVs(point)
                     glTexCoord2f(u, v)
-                    point = self.transform * point
+                    point = self.render_transform * point
                     glVertex2f(point.x, point.y)
         finally:
             glEnd() # Failing to call this is apparently fatal.
@@ -96,6 +101,16 @@ class Cutter(object):
         self.polygon = polygon if polygon is not None else Polygon()
         # Each transform in this list, when applied to the polygon, produces a symmetry of the polygon.
         self.symmetry_list = []
+
+    def Render(self, render_what):
+        if render_what == 'shadow':
+            glColor3f(0.0, 0.0, 0.0)
+            self.polygon.TesselateIfNeeded()
+            self.polygon.RenderTriangles()
+        elif render_what == 'outline':
+            glColor3f(1.0, 1.0, 1.0)
+            glLineWidth(2.0)
+            self.polygon.RenderEdges()
 
     def MakeRegularPolygon(self, sides, center, radius, tilt_angle=0.0):
         self.polygon = Polygon()

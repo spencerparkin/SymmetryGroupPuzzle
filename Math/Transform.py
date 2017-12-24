@@ -3,6 +3,7 @@
 import copy
 
 from Math.Vector import Vector
+from Math.LineSegment import LineSegment
 
 class LinearTransform(object):
     def __init__(self, xAxis=None, yAxis=None):
@@ -60,6 +61,9 @@ class LinearTransform(object):
         self.xAxis = Vector(1.0, 0.0)
         self.yAxis = Vector(shear, 1.0)
 
+    def Interpolate(self, transformA, transformB, interp_value):
+        pass
+
 class AffineTransform(object):
     def __init__(self, xAxis=Vector(1.0, 0.0), yAxis=Vector(0.0, 1.0), translation=Vector(0.0, 0.0)):
         self.linear_transform = LinearTransform(xAxis, yAxis)
@@ -84,16 +88,18 @@ class AffineTransform(object):
         return self.linear_transform * vector + self.translation
 
     def Rotation(self, point, angle):
-        pass
+        self.linear_transform.Rotation(angle)
+        self.translation = self.linear_transform * -point + point
 
     def Reflection(self, point, normal):
-        pass
+        self.linear_transform.Reflection(normal)
+        self.translation = self.linear_transform * -point + point
 
     def Translation(self, translation):
         self.linear_transform.Identity()
         self.translation = translation
 
-    def RigidMotion(self, angle, translation):
+    def RigidBodyMotion(self, angle, translation):
         self.linear_transform.Rotation(angle)
         self.translation = translation
 
@@ -105,3 +111,7 @@ class AffineTransform(object):
             return affine_transform
         elif isinstance(thing, Vector):
             return self.Transform(thing)
+
+    def Interpolate(self, transformA, transformB, interp_value):
+        self.linear_transform.Interpolate(transformA.linear_transform, transformB.linear_transform, interp_value)
+        self.translation.Lerp(transformA.translation, transformB.translation, interp_value)

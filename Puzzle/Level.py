@@ -16,7 +16,7 @@ def MakePuzzle(level):
         triangleB = Cutter()
         triangleB.MakeRegularPolygon(3, Vector(-3.0, 0.0), 5.0, 0.0)
         cutter_list.append(triangleB)
-        window = Rectangle(Vector(-5.0, -5.0), Vector(5.0, 5.0))
+        window = Rectangle(Vector(-8.0, -8.0), Vector(8.0, 8.0))
     elif level == 2:
         pass
     elif level == 3:

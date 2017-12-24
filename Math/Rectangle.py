@@ -46,7 +46,7 @@ class Rectangle(object):
             self.min_point.x += delta_width
             self.max_point.x -= delta_width
         else:
-            delta_height = (self.Height() - rectangle.Width() * self.Width() / rectangle.Width()) / 2.0
+            delta_height = (self.Height() - rectangle.Height() * self.Width() / rectangle.Width()) / 2.0
             self.min_point.y += delta_height
             self.max_point.y -= delta_height
 
