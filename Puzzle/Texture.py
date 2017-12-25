@@ -10,6 +10,7 @@ class Texture(object):
 
     def Bind(self):
         glEnable(GL_TEXTURE_2D)
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
         if self.texture_object is not None:
             glBindTexture(GL_TEXTURE_2D, self.texture_object)
         else:

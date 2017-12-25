@@ -17,7 +17,7 @@ class Window(QtGui.QOpenGLWindow):
         self.context = None
         self.level = 1
         self.puzzle = MakePuzzle(self.level)
-        self.texture = Texture(r'C:\SymmetryGroupPuzzle\Images\image0.png')
+        self.texture = Texture('Images/image0.png')
 
     def initializeGL(self):
         #self.context = QtGui.QOpenGLContext(self)
@@ -65,14 +65,8 @@ class Window(QtGui.QOpenGLWindow):
         finally:
             glEnd()
 
-        # I'm almost certain that I'm not mis-using OpenGL here, but these lines,
-        # uncommented, cause some undesirable behavior that I think is a bug with
-        # however OpenGL is bound in Python.  What a pain in the ass.  I've never
-        # seen such crappy behavior like this while writing a C++/OpenGL application,
-        # of which I've written about a billion.  Python with OpenGL sucks like crap.
-        # Maybe I'm just not setting it up all correctly?  I don't know.
-        #glDisable(GL_TEXTURE_2D)
-        #self.puzzle.RenderShadow()
+        glDisable(GL_TEXTURE_2D)
+        self.puzzle.RenderShadow()
 
         self.texture.Bind()
         self.puzzle.RenderShapes()
