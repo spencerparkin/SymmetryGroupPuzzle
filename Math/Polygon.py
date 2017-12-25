@@ -5,6 +5,7 @@ import copy
 from OpenGL.GL import *
 from Math.Triangle import Triangle
 from Math.LineSegment import LineSegment
+from Math.Vector import Vector
 
 def CyclicIteration(start, stop, modulus, step=1):
     i = start
@@ -21,6 +22,14 @@ class Polygon(object):
 
     def Clone(self):
         return copy.deepcopy(self)
+
+    def AveragePoint(self):
+        if len(self.point_list) > 0:
+            average_point = Vector(0.0, 0.0)
+            for point in self.point_list:
+                average_point += point
+            average_point = average_point.Scaled(1.0 / float(len(self.point_list)))
+            return average_point
 
     def TesselateIfNeeded(self):
         # Of course, if we already have a tesselation, we have no

@@ -65,11 +65,21 @@ class Puzzle(object):
 
     def RenderShadow(self):
         for cutter in self.cutter_list:
-            cutter.Render('shadow')
+            cutter.RenderShadow()
 
     def RenderShapes(self):
         for shape in self.shape_list:
             shape.Render(self.window)
+
+    def NearestCutter(self, point):
+        j = -1
+        shortest_distance = 0.0
+        for i, cutter in enumerate(self.cutter_list):
+            distance = (point - cutter.polygon.AveragePoint()).Length()
+            if j < 0 or distance < shortest_distance:
+                j = i
+                shortest_distance = distance
+        return j
 
 class Shape(object):
     def __init__(self, polygon, transform=None):
@@ -91,7 +101,8 @@ class Shape(object):
                     point = triangle.vertex_list[i]
                     u, v = window.CalcUVs(point)
                     glTexCoord2f(u, v)
-                    point = self.render_transform * point
+                    #point = self.render_transform * point  TODO: When ready to animate, re-enable this.
+                    point = self.transform * point # TODO: Do this for now.  Everything will instantly snap into place.  Delete later.
                     glVertex2f(point.x, point.y)
         finally:
             glEnd() # Failing to call this is apparently fatal.
@@ -102,15 +113,15 @@ class Cutter(object):
         # Each transform in this list, when applied to the polygon, produces a symmetry of the polygon.
         self.symmetry_list = []
 
-    def Render(self, render_what):
-        if render_what == 'shadow':
-            glColor3f(0.0, 0.0, 0.0)
-            self.polygon.TesselateIfNeeded()
-            self.polygon.RenderTriangles()
-        elif render_what == 'outline':
-            glColor3f(1.0, 1.0, 1.0)
-            glLineWidth(2.0)
-            self.polygon.RenderEdges()
+    def RenderShadow(self):
+        glColor3f(0.0, 0.0, 0.0)
+        self.polygon.TesselateIfNeeded()
+        self.polygon.RenderTriangles()
+
+    def RenderOutline(self):
+        glColor3f(1.0, 1.0, 1.0)
+        glLineWidth(2.0)
+        self.polygon.RenderEdges()
 
     def MakeRegularPolygon(self, sides, center, radius, tilt_angle=0.0):
         self.polygon = Polygon()
@@ -122,3 +133,6 @@ class Cutter(object):
             rotation = AffineTransform().Rotation(center, angle)
             reflection = AffineTransform().Reflection(center, vector)
             self.symmetry_list += [rotation, reflection]
+
+    def FindReflection(self, axis):
+        pass # TODO: We're looking for the symmetry transform with the given axis as an eigen vector.

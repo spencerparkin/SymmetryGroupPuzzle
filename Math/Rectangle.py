@@ -2,6 +2,7 @@
 
 import copy
 
+from Math.Vector import Vector
 from Math.LineSegment import LineSegment
 
 class Rectangle(object):
@@ -16,6 +17,15 @@ class Rectangle(object):
         u = (point.x - self.min_point.x) / (self.max_point.x - self.min_point.x)
         v = (point.y - self.min_point.y) / (self.max_point.y - self.min_point.y)
         return u, v
+
+    def ApplyUVs(self, u, v):
+        x = self.min_point.x + u * (self.max_point.x - self.min_point.x)
+        y = self.min_point.y + v * (self.max_point.y - self.min_point.y)
+        return Vector(x, y)
+
+    def Map(self, point, rectangle):
+        u, v = self.CalcUVs(point)
+        return rectangle.ApplyUVs(u, v)
 
     def Width(self):
         return self.max_point.x - self.min_point.x
