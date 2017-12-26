@@ -19,7 +19,9 @@ class Window(QtGui.QOpenGLWindow):
         self.puzzle = MakePuzzle(self.level)
         self.texture = Texture('Images/image0.png')
         self.adjusted_window = None
-        self.selected_cutter = None
+        self.ccw_rotation_action = None
+        self.cw_rotation_action = None
+        self.reflection_action = None
 
     def initializeGL(self):
         #self.context = QtGui.QOpenGLContext(self)
@@ -73,9 +75,14 @@ class Window(QtGui.QOpenGLWindow):
         self.texture.Bind()
         self.puzzle.RenderShapes()
 
-        if self.selected_cutter is not None:
-            cutter = self.puzzle.cutter_list[self.selected_cutter]
-            cutter.RenderOutline()
+        if self.ccw_rotation_action is not None:
+            self.ccw_rotation_action.Render(self.puzzle)
+
+        if self.cw_rotation_action is not None:
+            self.cw_rotation_action.Render(self.puzzle)
+
+        if self.reflection_action is not None:
+            self.reflection_action.Render(self.puzzle)
 
         glFlush()
 
@@ -83,20 +90,30 @@ class Window(QtGui.QOpenGLWindow):
         pass # glViewport(0, 0, width, height)
 
     def mousePressEvent(self, event):
-        # TODO: Selected cutter center to point click gives axis for reflection symmetry.
-        pass # self.puzzle.ApplyCuttingPolygon(self.selected_cutter, symmetry)
+        button = event.button()
+        if button == QtCore.Qt.LeftButton:
+            if self.reflection_action is not None:
+                self.puzzle.PerformAction(self.reflection_action)
+                self.update()
 
     def mouseMoveEvent(self, event):
         if self.adjusted_window is not None:
             rectangle = Rectangle(Vector(0.0, 0.0), Vector(float(self.width()), float(self.height())))
             point = Vector(float(event.x()), float(event.y()))
             point = rectangle.Map(point, self.adjusted_window)
-            self.selected_cutter = self.puzzle.NearestCutter(point)
+            self.ccw_rotation_action, self.cw_rotation_action, self.reflection_action = self.puzzle.DeterminePossibleActions(point)
             self.update()
 
-    # TODO: Highlight nearest cutter to mouse at all times.
-    #       Use mouse wheel for rotations; clicks for reflections.
-    #       Based on click point, query cutter shape for reflection axis.
+    def wheelEvent(self, event):
+        angleDelta = event.angleDelta().y()
+        steps = angleDelta / 120
+        while steps > 0 and self.cw_rotation_action is not None:
+            self.puzzle.PerformAction(self.cw_rotation_action)
+            steps -= 1
+        while steps < 0 and self.ccw_rotation_action is not None:
+            self.puzzle.PerformAction(self.ccw_rotation_action)
+            steps += 1
+        self.update()
 
     # TODO: Let them choose any picture for any puzzle.
     #       Let them skip any level and go to the next.

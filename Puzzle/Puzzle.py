@@ -37,13 +37,9 @@ class Puzzle(object):
             else:
                 self.shape_list.append(Shape(polygon))
     
-    def ApplyCuttingPolygon(self, i=-1, j=-1):
-        if i < 0:
-            i = random.randint(0, len(self.cutter_list) - 1)
-        cutter = self.cutter_list[i]
-        if j < 0:
-            j = random.randint(0, len(cutter.symmetry_list) - 1)
-        symmetry_transform = cutter.symmetry_list[j]
+    def PerformAction(self, action):
+        cutter = self.cutter_list[action.cutter_offset]
+        symmetry_transform = cutter.symmetry_list[action.symmetry_offset]
         new_shape_list = []
         for shape in self.shape_list:
             inside_list, outside_list = shape.Transformed().CutAgainst(cutter.polygon)
@@ -60,7 +56,8 @@ class Puzzle(object):
     
     def Scramble(self, count):
         while count > 0:
-            self.ApplyCuttingShape()
+            action = Action().Random(self)
+            self.PerformAction(action)
             count -= 1
 
     def RenderShadow(self):
@@ -71,7 +68,7 @@ class Puzzle(object):
         for shape in self.shape_list:
             shape.Render(self.window)
 
-    def NearestCutter(self, point):
+    '''def NearestCutter(self, point):
         j = -1
         shortest_distance = 0.0
         for i, cutter in enumerate(self.cutter_list):
@@ -79,7 +76,15 @@ class Puzzle(object):
             if j < 0 or distance < shortest_distance:
                 j = i
                 shortest_distance = distance
-        return j
+        return j'''
+
+    def DeterminePossibleActions(self, mouse_point):
+        # TODO: Render a ccw, cw and reflection action indicated by the given point.
+        #       The applicable cutter is closest to the given point.  The rotation actions
+        #       are the smallest available of the cutter.  The reflection of the cutter
+        #       is found as having an axis (eigen vector) closest to that vector formed by
+        #       the average point of the cutter polygon and the mouse point.
+        return None, None, None
 
 class Shape(object):
     def __init__(self, polygon, transform=None):
@@ -111,6 +116,8 @@ class Cutter(object):
     def __init__(self, polygon=None):
         self.polygon = polygon if polygon is not None else Polygon()
         # Each transform in this list, when applied to the polygon, produces a symmetry of the polygon.
+        # One way to think of each symmetry transform is as a permutation of the vertices of the polygon.
+        # Of course, not all permutations of the vertices would be valid.
         self.symmetry_list = []
 
     def RenderShadow(self):
@@ -134,5 +141,18 @@ class Cutter(object):
             reflection = AffineTransform().Reflection(center, vector)
             self.symmetry_list += [rotation, reflection]
 
-    def FindReflection(self, axis):
-        pass # TODO: We're looking for the symmetry transform with the given axis as an eigen vector.
+class Action(object):
+    def __init__(self):
+        self.cutter_offset = None
+        self.symmetry_offset = None
+
+    def Random(self, puzzle):
+        self.cutter_offset = random.randint(0, len(puzzle.cutter_list) - 1)
+        cutter = puzzle.cutter_list[self.cutter_offset]
+        self.symmetry = random.randint(0, len(cutter.symmetry_list) - 1)
+        return self
+
+    def Render(self, puzzle):
+        cutter = puzzle.cutter_list[self.cutter_offset]
+        cutter.RenderOutline()
+        # TODO: If we're a reflection, draw the reflection axis.
