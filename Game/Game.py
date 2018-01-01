@@ -18,7 +18,7 @@ class Window(QtGui.QOpenGLWindow):
         self.context = None
         self.level = 1
         self.puzzle = MakePuzzle(self.level)
-        self.texture = Texture('Images/image0.png')
+        self.texture = Texture('Images/image1.png')
         self.adjusted_window = None
         self.nearest_cutter = None
         self.nearest_axis = None

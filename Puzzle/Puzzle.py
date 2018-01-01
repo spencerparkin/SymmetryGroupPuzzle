@@ -9,6 +9,9 @@ from Math.Polygon import Polygon
 from Math.Transform import AffineTransform
 from Math.Rectangle import Rectangle
 
+# TODO: To support a web-app, the only communication per move would be a representation
+#       of this puzzle object, and that could be very fast.  The browser would just need
+#       to be able to render the puzzle object, probably using WebGL.
 class Puzzle(object):
     # In order to support non-trivial topologies (i.e., shapes with "holes" in them),
     # we'll have to use polygons that are self-tangent.
@@ -36,7 +39,7 @@ class Puzzle(object):
             for i in range(len(cutter.polygon.point_list)):
                 point = cutter.polygon.point_list[i]
                 self.window.GrowForPoint(point)
-        self.window.Scale(1.1)
+        self.window.Scale(1.5)
 
     def IsSolved(self):
         pass # We are solved if every shape has the identity transform.
