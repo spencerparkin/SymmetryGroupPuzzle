@@ -80,3 +80,10 @@ class Vector(object):
         lerp_vector = vectorA + lerp_value * (vectorB - vectorA)
         self.x = lerp_vector.x
         self.y = lerp_vector.y
+        return self
+
+    def ProjectOnto(self, normal):
+        return (self.Dot(normal) / normal.Dot(normal)) * normal
+
+    def RejectFrom(self, normal):
+        return self - self.ProjectOnto(normal)

@@ -24,7 +24,7 @@ class LinearTransform(object):
         try:
             inverse = LinearTransform()
             inverse.xAxis = Vector(self.yAxis.y, -self.xAxis.y)
-            inverse.yAxis = Vector(-self.xAxis.x, self.yAxis.x)
+            inverse.yAxis = Vector(-self.yAxis.x, self.xAxis.x)
             det = self.Determinant()
             inverse = inverse * (1.0 / det)
             return inverse
@@ -64,6 +64,11 @@ class LinearTransform(object):
     def Interpolate(self, transformA, transformB, interp_value):
         pass
 
+    def Orthonormalize(self):
+        self.xAxis = self.xAxis.Normalized()
+        self.yAxis = self.yAxis.RejectFrom(self.xAxis)
+        self.yAxis = self.yAxis.Normalized()
+
 class AffineTransform(object):
     def __init__(self, xAxis=Vector(1.0, 0.0), yAxis=Vector(0.0, 1.0), translation=Vector(0.0, 0.0)):
         self.linear_transform = LinearTransform(xAxis, yAxis)
@@ -84,24 +89,31 @@ class AffineTransform(object):
         inverse.translation = inverse.linear_transform.Transform(self.translation.Negated())
         return inverse
 
+    def Orthonormalize(self):
+        self.linear_transform.Orthonormalize()
+
     def Transform(self, vector):
         return self.linear_transform * vector + self.translation
 
     def Rotation(self, point, angle):
         self.linear_transform.Rotation(angle)
         self.translation = self.linear_transform * -point + point
+        return self
 
     def Reflection(self, point, normal):
         self.linear_transform.Reflection(normal)
         self.translation = self.linear_transform * -point + point
+        return self
 
     def Translation(self, translation):
         self.linear_transform.Identity()
         self.translation = translation
+        return self
 
     def RigidBodyMotion(self, angle, translation):
         self.linear_transform.Rotation(angle)
         self.translation = translation
+        return self
 
     def __mul__(self, thing):
         if isinstance(thing, AffineTransform):

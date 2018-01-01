@@ -4,11 +4,12 @@ import copy
 
 from Math.Vector import Vector
 from Math.LineSegment import LineSegment
+from Math.Polygon import Polygon
 
 class Rectangle(object):
-    def __init__(self, min_point, max_point):
-        self.min_point = min_point
-        self.max_point = max_point
+    def __init__(self, min_point=None, max_point=None):
+        self.min_point = min_point if min_point is not None else Vector(0.0, 0.0)
+        self.max_point = max_point if max_point is not None else Vector(0.0, 0.0)
 
     def Clone(self):
         return copy.deepcopy(self)
@@ -32,6 +33,9 @@ class Rectangle(object):
 
     def Height(self):
         return self.max_point.y - self.min_point.y
+
+    def Area(self):
+        return self.Width() * self.Height()
 
     def AspectRatio(self):
         return self.Width() / self.Height()
@@ -62,3 +66,31 @@ class Rectangle(object):
 
     def Center(self):
         return LineSegment(self.min_point, self.max_point).Lerp(0.5)
+
+    def GrowForPoint(self, point):
+        # Minimally grow the rectangle to include the given point.
+        if self.min_point.x > point.x:
+            self.min_point.x = point.x
+        if self.max_point.x < point.x:
+            self.max_point.x = point.x
+        if self.min_point.y > point.y:
+            self.min_point.y = point.y
+        if self.max_point.y < point.y:
+            self.max_point.y = point.y
+
+    def Scale(self, scale_factor):
+        center = self.Center()
+        max_vector = self.max_point - center
+        min_vector = self.min_point - center
+        max_vector = max_vector.Scaled(scale_factor)
+        min_vector = min_vector.Scaled(scale_factor)
+        self.max_point = center + max_vector
+        self.min_point = center + min_vector
+
+    def Polygon(self):
+        polygon = Polygon()
+        polygon.point_list.append(Vector(self.min_vector.x, self.min_vector.y))
+        polygon.point_list.append(Vector(self.max_vector.x, self.min_vector.y))
+        polygon.point_list.append(Vector(self.max_vector.x, self.max_vector.y))
+        polygon.point_list.append(Vector(self.min_vector.x, self.max_vector.y))
+        return polygon

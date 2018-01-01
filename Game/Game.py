@@ -7,6 +7,7 @@ from OpenGL.GLU import *
 from PyQt5 import QtGui, QtCore, QtWidgets
 from Math.Rectangle import Rectangle
 from Math.Vector import Vector
+from Math.LineSegment import LineSegment
 from Puzzle.Level import MakePuzzle
 from Puzzle.Texture import Texture
 
@@ -19,9 +20,8 @@ class Window(QtGui.QOpenGLWindow):
         self.puzzle = MakePuzzle(self.level)
         self.texture = Texture('Images/image0.png')
         self.adjusted_window = None
-        self.ccw_rotation_action = None
-        self.cw_rotation_action = None
-        self.reflection_action = None
+        self.nearest_cutter = None
+        self.nearest_axis = None
 
     def initializeGL(self):
         #self.context = QtGui.QOpenGLContext(self)
@@ -33,6 +33,7 @@ class Window(QtGui.QOpenGLWindow):
         glShadeModel(GL_SMOOTH)
         glDisable(GL_DEPTH_TEST)
         glClearColor(0.7, 0.7, 0.7, 0.0)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT)
@@ -55,6 +56,9 @@ class Window(QtGui.QOpenGLWindow):
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+
         self.texture.Bind()
         glBegin(GL_QUADS)
         try:
@@ -70,50 +74,67 @@ class Window(QtGui.QOpenGLWindow):
             glEnd()
 
         glDisable(GL_TEXTURE_2D)
+        glEnable(GL_BLEND)
+
         self.puzzle.RenderShadow()
+
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
 
         self.texture.Bind()
         self.puzzle.RenderShapes()
 
-        if self.ccw_rotation_action is not None:
-            self.ccw_rotation_action.Render(self.puzzle)
+        glDisable(GL_TEXTURE_2D)
+        glEnable(GL_BLEND)
 
-        if self.cw_rotation_action is not None:
-            self.cw_rotation_action.Render(self.puzzle)
-
-        if self.reflection_action is not None:
-            self.reflection_action.Render(self.puzzle)
+        if self.nearest_cutter is not None:
+            cutter = self.puzzle.cutter_list[self.nearest_cutter]
+            glColor4f(1.0, 1.0, 1.0, 0.1)
+            glLineWidth(4.0)
+            cutter.RenderOutline()
+            if self.nearest_axis is not None:
+                axis = cutter.axes_of_symmetry[self.nearest_axis]
+                radius = cutter.polygon.AverageRadius() * 2.0
+                pointA = Vector().Lerp(cutter.center, cutter.center + axis, radius)
+                pointB = Vector().Lerp(cutter.center, cutter.center - axis, radius)
+                glBegin(GL_LINES)
+                glVertex2f(pointA.x, pointA.y)
+                glVertex2f(pointB.x, pointB.y)
+                glEnd()
 
         glFlush()
 
     def resizeGL(self, width, height):
         pass # glViewport(0, 0, width, height)
 
-    def mousePressEvent(self, event):
-        button = event.button()
-        if button == QtCore.Qt.LeftButton:
-            if self.reflection_action is not None:
-                self.puzzle.PerformAction(self.reflection_action)
-                self.update()
-
     def mouseMoveEvent(self, event):
         if self.adjusted_window is not None:
             rectangle = Rectangle(Vector(0.0, 0.0), Vector(float(self.width()), float(self.height())))
             point = Vector(float(event.x()), float(event.y()))
             point = rectangle.Map(point, self.adjusted_window)
-            self.ccw_rotation_action, self.cw_rotation_action, self.reflection_action = self.puzzle.DeterminePossibleActions(point)
+            point.y = -point.y
+            self.nearest_cutter = self.puzzle.NearestCutter(point)
+            self.nearest_axis = self.puzzle.NearestAxisOfSymmetry(point)
             self.update()
 
+    def mousePressEvent(self, event):
+        button = event.button()
+        if button == QtCore.Qt.LeftButton:
+            if self.nearest_cutter is not None and self.nearest_axis is not None:
+                self.puzzle.ReflectCutter(self.nearest_cutter, self.nearest_axis)
+                self.update()
+
     def wheelEvent(self, event):
-        angleDelta = event.angleDelta().y()
-        steps = angleDelta / 120
-        while steps > 0 and self.cw_rotation_action is not None:
-            self.puzzle.PerformAction(self.cw_rotation_action)
-            steps -= 1
-        while steps < 0 and self.ccw_rotation_action is not None:
-            self.puzzle.PerformAction(self.ccw_rotation_action)
-            steps += 1
-        self.update()
+        if self.nearest_cutter is not None:
+            angleDelta = event.angleDelta().y()
+            steps = angleDelta / 120
+            while steps > 0:
+                self.puzzle.RotateCutter(self.nearest_cutter, False)
+                steps -= 1
+            while steps < 0:
+                self.puzzle.RotateCutter(self.nearest_cutter, True)
+                steps += 1
+            self.update()
 
     # TODO: Let them choose any picture for any puzzle.
     #       Let them skip any level and go to the next.

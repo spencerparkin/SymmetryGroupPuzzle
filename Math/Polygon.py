@@ -23,6 +23,13 @@ class Polygon(object):
     def Clone(self):
         return copy.deepcopy(self)
 
+    def IsValid(self):
+        # Here I believe that we would need to check that there is never a
+        # non-trivial intersection between any two edges of the polygon.
+        # We would also need to check that the winding in the plane is CCW.
+        # TODO: Do that here.
+        return True
+
     def AveragePoint(self):
         if len(self.point_list) > 0:
             average_point = Vector(0.0, 0.0)
@@ -30,6 +37,15 @@ class Polygon(object):
                 average_point += point
             average_point = average_point.Scaled(1.0 / float(len(self.point_list)))
             return average_point
+
+    def AverageRadius(self):
+        if len(self.point_list) > 0:
+            center = self.AveragePoint()
+            radius = 0.0
+            for point in self.point_list:
+                radius += (center - point).Length()
+            radius /= float(len(self.point_list))
+            return radius
 
     def TesselateIfNeeded(self):
         # Of course, if we already have a tesselation, we have no
@@ -111,8 +127,13 @@ class Polygon(object):
                         elif queue is outside_queue:
                             outside_list.append(polygon)
         else:
-            # In this case, don't we still need to determine which side we're on?
-            return None, None
+            cutting_polygon.TesselateIfNeeded()
+            for point in self.point_list:
+                if not cutting_polygon.ContainsPoint(point):
+                    outside_list.append(self.Clone())
+                    break
+            else:
+                inside_list.append(self.Clone())
         return inside_list, outside_list
 
     def _SplitAgainst(self, cutting_polygon):
@@ -129,14 +150,18 @@ class Polygon(object):
             else:
                 hit_list = []
                 for edge in self.GenerateEdges():
-                    point = edge.IntersectionPoint(cutting_edge)
+                    point = edge.IntersectionPoint(cutting_edge, 0.0)
                     if point is not None and not cutting_edge.EitherPointIs(point):
                         for hit in hit_list:
                             if hit[0].IsPoint(point):
                                 break
                         else:
                             lerp_value = cutting_edge.LerpValueOf(point)
-                            hit_list.append((point, lerp_value))
+                            # When line segments are almost parallel, I think we can mistakenly get
+                            # here with a lerp-value that is outside of [0,1].  Otherwise, this check
+                            # would be completely unnecessary.
+                            if 0.0 < lerp_value < 1.0:
+                                hit_list.append((point, lerp_value))
                 hit_list.sort(key = lambda hit: hit[1])
                 intersection_point_list += [hit[0] for hit in hit_list]
         self_clone = self.Clone()
@@ -217,7 +242,10 @@ class Polygon(object):
     def Transformed(self, transform):
         polygon = Polygon()
         for point in self.point_list:
-            polygon.poing_list.append(transform.Transform(point))
+            polygon.point_list.append(transform.Transform(point))
+        det = transform.linear_transform.Determinant()
+        if det < 0.0:
+            polygon.point_list = [point for point in reversed(polygon.point_list)]
         return polygon
 
     def RenderEdges(self):
