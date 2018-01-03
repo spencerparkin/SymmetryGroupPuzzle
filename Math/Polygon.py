@@ -23,6 +23,18 @@ class Polygon(object):
     def Clone(self):
         return copy.deepcopy(self)
 
+    def Serialize(self):
+        data = {
+            'point_list': [point.Serialize() for point in self.point_list],
+            'triangle_list': [triangle.Serialize() for triangle in self.triangle_list]
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.point_list = [Vector().Deserialize(point) for point in data['point_list']]
+        self.triangle_list = [Triangle().Deserialize(triangle) for triangle in data['triangle_list']]
+        return self
+
     def IsValid(self):
         # Here I believe that we would need to check that there is never a
         # non-trivial intersection between any two edges of the polygon.

@@ -9,9 +9,6 @@ from Math.Polygon import Polygon
 from Math.Transform import AffineTransform
 from Math.Rectangle import Rectangle
 
-# TODO: To support a web-app, the only communication per move would be a representation
-#       of this puzzle object, and that could be very fast.  The browser would just need
-#       to be able to render the puzzle object, probably using WebGL.
 class Puzzle(object):
     # In order to support non-trivial topologies (i.e., shapes with "holes" in them),
     # we'll have to use polygons that are self-tangent.
@@ -40,6 +37,22 @@ class Puzzle(object):
                 point = cutter.polygon.point_list[i]
                 self.window.GrowForPoint(point)
         self.window.Scale(1.5)
+
+    def Serialize(self):
+        # I thought about making JSONEncoder derivative, but this is just easier, I think.
+        data = {
+            'window': self.window.Serialize(),
+            'shape_list': [shape.Serialize() for shape in self.shape_list],
+            'cutter_list': [cutter.Serialize() for cutter in self.cutter_list]
+        }
+        return data
+
+    def Deserialize(self, data):
+        # I thought about using an object hook with the JSON decoder, but this is just easier, I think.
+        self.window = Rectangle().Deserialize(data['window'])
+        self.shape_list = [Shape().Deserialize(shape) for shape in data['shape_list']]
+        self.cutter_list = [Cutter().Deserialize(cutter) for cutter in data['cutter_list']]
+        return self
 
     def IsSolved(self):
         pass # We are solved if every shape has the identity transform.
@@ -73,7 +86,6 @@ class Puzzle(object):
                 # we avoid a great deal of accumulated round-off error problems.  We don't
                 # avoid them altogether, though; we just stave them off until further on.
                 shape.transform = symmetry_transform * shape.transform
-                shape.render_transform = shape.transform.Clone()
                 new_shape_list.append(shape)
             else:
                 inverse_transform = shape.transform.Inverted()
@@ -104,6 +116,7 @@ class Puzzle(object):
             shape.Render(self.window)
 
     def NearestCutter(self, point):
+        # TODO: Require point to be inside cutter?
         j = -1
         shortest_distance = 0.0
         for i, cutter in enumerate(self.cutter_list):
@@ -129,16 +142,25 @@ class Puzzle(object):
         return i
 
 class Shape(object):
-    def __init__(self, polygon, transform=None, render_transform=None):
+    def __init__(self, polygon, transform=None):
         self.polygon = polygon
         # There is some concern that this will suffer from accumulated round-off error.
         # We try to mitigate the problem here a bit by re-orthonormalizing all the time.
         self.transform = transform if transform is not None else AffineTransform()
         self.transform.Orthonormalize()
-        # The render transform will lag behind the actual transform for animation purposes.
-        # Each frame, we interpolate the render transform toward the actual transform.
-        self.render_transform = render_transform if render_transform is not None else self.transform.Clone()
-    
+
+    def Serialize(self):
+        data = {
+            'polygon': self.polygon.Serialize(),
+            'transform': self.transform.Serialize(),
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.polygon = Polygon().Deserialize(data['polygon'])
+        self.transform = AffineTransform().Deserialize(data['transform'])
+        return self
+
     def Transformed(self):
         return self.polygon.Transformed(self.transform)
     
@@ -151,7 +173,7 @@ class Shape(object):
                     point = triangle.vertex_list[i]
                     u, v = window.CalcUVs(point)
                     glTexCoord2f(u, v)
-                    point = self.render_transform * point
+                    point = self.transform * point
                     glVertex2f(point.x, point.y)
         finally:
             glEnd()
@@ -162,6 +184,22 @@ class Cutter(object):
         self.angle_of_symmetry = 0.0
         self.axes_of_symmetry = []
         self.center = Vector()
+
+    def Serialize(self):
+        data = {
+            'polygon': self.polygon.Serialize(),
+            'angle_of_symmetry': self.angle_of_symmetry,
+            'axes_of_symmetry': [axis.Serialize() for axis in self.axes_of_symmetry],
+            'center': self.center.Serialize()
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.polygon = Polygon().Deserialize(data['polygon'])
+        self.angle_of_symmetry = data['angle_of_symmetry']
+        self.axes_of_symmetry = [Vector().Deserialize(axis) for axis in data['axes_of_symmetry']]
+        self.center = Vector().Deserialize(data['center'])
+        return self
 
     def RenderShadow(self):
         glColor3f(0.0, 0.0, 0.0)

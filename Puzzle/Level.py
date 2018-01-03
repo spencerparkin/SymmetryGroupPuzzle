@@ -7,16 +7,16 @@ from Puzzle.Puzzle import Cutter, Puzzle
 
 def MakePuzzle(level):
     cutter_list = []
-    if level == 1:
+    if level == 0:
         triangleA = Cutter()
         triangleA.MakeRegularPolygon(3, Vector(3.0, 0.0), 5.0, math.pi / 3.0)
         cutter_list.append(triangleA)
         triangleB = Cutter()
         triangleB.MakeRegularPolygon(3, Vector(-3.0, 0.0), 5.0, 0.0)
         cutter_list.append(triangleB)
-    elif level == 2:
+    elif level == 1:
         pass
-    elif level == 3:
+    elif level == 2:
         pass
     puzzle = Puzzle(cutter_list)
     return puzzle

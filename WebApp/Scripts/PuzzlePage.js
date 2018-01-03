@@ -19,12 +19,12 @@ var OnDocumentReady = () => {
 	    gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 	    // Register some canvas callbacks.
-	    /*$('#canvas').click(OnCanvasClicked);
-	    $('#canvas').mousemove(OnCanvasMouseMoved);
+	    $('#canvas').click(OnCanvasClicked);
+	    /*$('#canvas').mousemove(OnCanvasMouseMoved);
         $('#canvas').bind('mousewheel', OnCanvasMouseWheel)*/
 
         // Get the background image texture and the puzzle state, then render the puzzle.
-        /*Promises.all([
+        /*Promise.all([
             PromiseShaderProgram(),
             PromiseTexture(),
             PromisePuzzleState()
@@ -55,8 +55,9 @@ var PromisePuzzleState = () => new Promise((resolve, reject) => {
 });
 
 var PromiseTexture = () => new Promise((resolve, reject) => {
-    if(texture !=== null) {
-        //...free existing texture here?...
+    if(texture !== null) {
+        gl.deleteTexture(texture);
+        texture = null;
     }
     let image = new Image();
     image.onload = () => {
@@ -75,7 +76,7 @@ var PromiseTexture = () => new Promise((resolve, reject) => {
 });
 
 var PromiseShaderProgram = () => new Promise((resolve, reject) => {
-    Promises.all([
+    Promise.all([
         PromiseShader('Shaders/PuzzlePageVertShader.txt', gl.VERTEX_SHADER),
         PromiseShader('Shaders/PuzzlePageFragShader.txt', gl.FRAGMENT_SHADER)
     ]).then((results) => {
@@ -104,12 +105,21 @@ var PromiseShader = (source, type) => new Promise((resolve, reject) => {
             gl.deleteShader(shader);
             alert('Error: ' + error.toString());
             reject();
+        } else {
+            resolve(shader);
         }
-        resolve(shader);
     });
 });
 
 var OnCanvasClicked = event => {
+    // debug...
+    Promise.all([
+        PromiseShaderProgram(),
+        PromiseTexture(),
+        PromisePuzzleState()
+    ]).then(() => {
+        RenderPuzzle();
+    });
 }
 
 var OnCanvasMouseMoved = event => {

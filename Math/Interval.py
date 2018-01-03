@@ -5,6 +5,18 @@ class CompactInterval(object):
         self.min_point = min_point
         self.max_point = max_point
 
+    def Serialize(self):
+        data = {
+            'min_point': self.min_point,
+            'max_point': self.max_point
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.min_point = float(data['min_point'])
+        self.max_point = float(data['max_point'])
+        return self
+
     def ContainsPoint(self, point):
         return self.min_point <= point <= self.max_point
 
@@ -15,10 +27,10 @@ class CompactInterval(object):
         return (point - self.min_point) / (self.max_point - self.min_point)
 
     def Intersection(self, intervalA, intervalB):
-        pass
+        pass # TODO: Return a list of zero, one or two intervals.
         
     def Union(self, intervalA, intervalB):
-        pass
+        pass # TODO: Return a list of one or more intervals.
     
     def Difference(self, intervalA, intervalB):
-        pass
+        pass # TODO: Return a list of zero or more intervals.

@@ -8,6 +8,18 @@ class Vector(object):
         self.x = x
         self.y = y
 
+    def Serialize(self):
+        data = {
+            'x': self.x,
+            'y': self.y
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.x = float(data['x'])
+        self.y = float(data['y'])
+        return self
+
     def __add__(self, vector):
         return Vector(self.x + vector.x, self.y + vector.y)
 

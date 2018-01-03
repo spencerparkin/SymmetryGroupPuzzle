@@ -12,7 +12,19 @@ class LinearTransform(object):
 
     def Clone(self):
         return copy.deepcopy(self)
-    
+
+    def Serialize(self):
+        data = {
+            'xAxis': self.xAxis.Serialize(),
+            'yAxis': self.yAxis.Serialize(),
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.xAxis = Vector().Deserialize(data['xAxis'])
+        self.yAxis = Vector().Deserialize(data['yAxis'])
+        return self
+
     def Identity(self):
         self.xAxis = Vector(1.0, 0.0)
         self.yAxis = Vector(0.0, 1.0)
@@ -76,6 +88,18 @@ class AffineTransform(object):
 
     def Clone(self):
         return copy.deepcopy(self)
+
+    def Serialize(self):
+        data = {
+            'linear_transform': self.linear_transform.Serialize(),
+            'translation': self.translation.Serialize()
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.linear_transform = LinearTransform().Deserialize(data['linear_transform'])
+        self.translation = Vector().Deserialize(data['translation'])
+        return self
 
     def Identity(self):
         self.linearTransform.Identity()

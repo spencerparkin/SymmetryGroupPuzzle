@@ -14,6 +14,18 @@ class Rectangle(object):
     def Clone(self):
         return copy.deepcopy(self)
 
+    def Serialize(self):
+        data = {
+            'min_point': self.min_point.Serialize(),
+            'max_point': self.max_point.Serialize()
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.min_point = Vector().Deserialize(data['min_point'])
+        self.max_point = Vector().Deserialize(data['max_point'])
+        return self
+
     def CalcUVs(self, point):
         u = (point.x - self.min_point.x) / (self.max_point.x - self.min_point.x)
         v = (point.y - self.min_point.y) / (self.max_point.y - self.min_point.y)

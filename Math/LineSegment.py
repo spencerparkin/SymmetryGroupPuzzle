@@ -2,10 +2,24 @@
 
 import math
 
+from Math.Vector import Vector
+
 class LineSegment(object):
     def __init__(self, pointA, pointB):
         self.pointA = pointA
         self.pointB = pointB
+
+    def Serialize(self):
+        data = {
+            'pointA': self.pointA.Serialize(),
+            'pointB': self.pointB.Serialize()
+        }
+        return data
+
+    def Deserialize(self, data):
+        self.pointA = Vector().Deserialize(data['pointA'])
+        self.pointB = Vector().Deserialize(data['pointB'])
+        return self
 
     def Lerp(self, lerp_value):
         return self.pointA + lerp_value * (self.pointB - self.pointA)
