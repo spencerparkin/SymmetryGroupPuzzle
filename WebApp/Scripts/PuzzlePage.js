@@ -80,12 +80,12 @@ var RenderPuzzle = () => {
         gl.bufferData(gl.ARRAY_BUFFER, puzzleVertexBufferSize, gl.DYNAMIC_DRAW);
 
         let vertexLoc = gl.getAttribLocation(puzzleShaderProgram, 'localVertex');
-        //gl.enableVertexAttribArray(vertexLoc);
         gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, stride, 0);
+        gl.enableVertexAttribArray(vertexLoc);
 
         let texCoordLoc = gl.getAttribLocation(puzzleShaderProgram, 'texCoord');
-        //gl.enableVertexAttribArray(texCoordLoc);
-        gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, stride, 8);
+        gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, stride, 8);
+        gl.enableVertexAttribArray(texCoordLoc);
     } else {
         gl.bindBuffer(gl.ARRAY_BUFFER, puzzleVertexBuffer);
     }
