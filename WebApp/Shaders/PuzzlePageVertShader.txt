@@ -1,7 +1,6 @@
 // PuzzlePageVertShader.txt
 
 attribute vec2 localVertex;
-attribute vec2 texCoord;
 
 uniform mat3 localToWorld;
 uniform vec2 minPoint;
@@ -11,7 +10,8 @@ varying vec2 frag_texCoord;
 
 void main()
 {
-    frag_texCoord = texCoord;
+    frag_texCoord.s = (localVertex.x - minPoint.x) / (maxPoint.x - minPoint.x);
+    frag_texCoord.t = (localVertex.y - minPoint.y) / (maxPoint.y - minPoint.y);
 
     vec3 worldVertex = localToWorld * vec3(localVertex.x, localVertex.y, 1.0);
 
