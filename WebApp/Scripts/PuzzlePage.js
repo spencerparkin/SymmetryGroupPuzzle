@@ -27,13 +27,13 @@ var OnDocumentReady = () => {
         $('#canvas').bind('mousewheel', OnCanvasMouseWheel)*/
 
         // Get the background image texture and the puzzle state, then render the puzzle.
-        /*Promise.all([
+        Promise.all([
             PromiseShaderProgram(),
             PromiseTexture(),
             PromisePuzzleState()
         ]).then(() => {
             RenderPuzzle();
-        });*/
+        });
 
 	} catch(error) {
 	    alert('Error: ' + error.toString());
@@ -208,13 +208,6 @@ var PromiseShader = (source, type) => new Promise((resolve, reject) => {
 });
 
 var OnCanvasClicked = event => {
-    Promise.all([
-        PromiseShaderProgram(),
-        PromiseTexture(),
-        PromisePuzzleState()
-    ]).then(() => {
-        RenderPuzzle();
-    });
 }
 
 var OnCanvasMouseMoved = event => {
