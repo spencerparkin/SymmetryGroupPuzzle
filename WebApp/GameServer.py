@@ -30,6 +30,7 @@ class GameServer(object):
         try:
             level = int(kwargs['level'])
             puzzle = MakePuzzle(level)
+            puzzle.Scramble(50)
             data = puzzle.Serialize()
             return {'puzzle': data}
         except Exception as ex:

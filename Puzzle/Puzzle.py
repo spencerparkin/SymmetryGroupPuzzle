@@ -40,6 +40,8 @@ class Puzzle(object):
 
     def Serialize(self):
         # I thought about making JSONEncoder derivative, but this is just easier, I think.
+        for shape in self.shape_list:
+            shape.polygon.TesselateIfNeeded()
         data = {
             'window': self.window.Serialize(),
             'shape_list': [shape.Serialize() for shape in self.shape_list],

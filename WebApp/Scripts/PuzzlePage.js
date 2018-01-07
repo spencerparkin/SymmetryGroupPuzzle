@@ -7,6 +7,7 @@ var puzzleTextureSize = null;
 var puzzleShaderProgram = null;
 var puzzleVertexBuffer = null;
 var puzzleVertexBufferSize = 1024;
+var puzzleVertexBufferStride = 16; // 4 bytes per component (32-bit floats), 2 components per vector, 2 vectors per vertex.
 
 var OnDocumentReady = () => {
 	try {
@@ -70,9 +71,6 @@ var RenderPuzzle = () => {
     gl.uniform2f(minPointLoc, window.min_point.x, window.min_point.y);
     gl.uniform2f(maxPointLoc, window.max_point.x, window.max_point.y);
 
-    let localToWorldLoc = gl.getUniformLocation(puzzleShaderProgram, 'localToWorld');
-    let stride = 16; // 4 bytes per component (32-bit floats), 2 components per vector, 2 vectors per vertex.
-
     if(puzzleVertexBuffer === null) {
         puzzleVertexBuffer = gl.createBuffer();
 
@@ -80,48 +78,71 @@ var RenderPuzzle = () => {
         gl.bufferData(gl.ARRAY_BUFFER, puzzleVertexBufferSize, gl.DYNAMIC_DRAW);
 
         let vertexLoc = gl.getAttribLocation(puzzleShaderProgram, 'localVertex');
-        gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, stride, 0);
+        gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, puzzleVertexBufferStride, 0);
         gl.enableVertexAttribArray(vertexLoc);
 
         let texCoordLoc = gl.getAttribLocation(puzzleShaderProgram, 'texCoord');
-        gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, stride, 8);
+        gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, puzzleVertexBufferStride, 8);
         gl.enableVertexAttribArray(texCoordLoc);
     } else {
         gl.bindBuffer(gl.ARRAY_BUFFER, puzzleVertexBuffer);
     }
 
-    let dataArray =
-    [
+    DrawTriangles([
         {x: window.min_point.x, y: window.min_point.y, u: 0.0, v: 0.0},
         {x: window.max_point.x, y: window.min_point.y, u: 1.0, v: 0.0},
         {x: window.min_point.x, y: window.max_point.y, u: 0.0, v: 1.0},
         {x: window.max_point.x, y: window.min_point.y, u: 1.0, v: 0.0},
         {x: window.max_point.x, y: window.max_point.y, u: 1.0, v: 1.0},
         {x: window.min_point.x, y: window.max_point.y, u: 0.0, v: 1.0}
-    ];
+    ], [
+       1.0, 0.0, 0.0,
+       0.0, 1.0, 0.0,
+       0.0, 0.0, 1.0
+    ]);
 
+    for(let i = 0; i < puzzleState.shape_list.length; i++) {
+        let shape = puzzleState.shape_list[i];
+        let linear_transform = shape.transform.linear_transform;
+        let localToWorld = [
+            linear_transform.xAxis.x, linear_transform.yAxis.x, shape.transform.translation.x,
+            linear_transform.xAxis.y, linear_transform.yAxis.y, shape.transform.translation.y,
+            0.0, 0.0, 1.0
+        ];
+        let dataArray = [];
+        for(let j = 0; j < shape.polygon.triangle_list.length; j++) {
+            let triangle = shape.polygon.triangle_list[j];
+            for(let k = 0; k < triangle.vertex_list.length; k++) {
+                let vertex = triangle.vertex_list[k];
+                dataArray.push({
+                    x: vertex.x,
+                    y: vertex.y,
+                    u: (vertex.x - window.min_point.x) / (window.max_point.x - window.min_point.x),
+                    v: (vertex.y - window.min_point.y) / (window.max_point.y - window.min_point.y)
+                });
+            }
+        }
+        DrawTriangles(dataArray, localToWorld);
+    }
+
+    return true;
+}
+
+var DrawTriangles = (dataArray, localToWorld) => {
     let arrayBuffer = new ArrayBuffer(puzzleVertexBufferSize);
     let dataView = new DataView(arrayBuffer);
 
     for(let i = 0; i < dataArray.length; i++) {
-        dataView.setFloat32(stride * i + 0, dataArray[i].x, true);
-        dataView.setFloat32(stride * i + 4, dataArray[i].y, true);
-        dataView.setFloat32(stride * i + 8, dataArray[i].u, true);
-        dataView.setFloat32(stride * i + 12, dataArray[i].v, true);
+        dataView.setFloat32(puzzleVertexBufferStride * i + 0, dataArray[i].x, true);
+        dataView.setFloat32(puzzleVertexBufferStride * i + 4, dataArray[i].y, true);
+        dataView.setFloat32(puzzleVertexBufferStride * i + 8, dataArray[i].u, true);
+        dataView.setFloat32(puzzleVertexBufferStride * i + 12, dataArray[i].v, true);
     }
 
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, arrayBuffer);
-
-    let localToWorld = new Float32Array([
-        1.0, 0.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 0.0, 1.0
-    ]);
-
-    gl.uniformMatrix3fv(localToWorldLoc, false, localToWorld);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-    return true;
+    let localToWorldLoc = gl.getUniformLocation(puzzleShaderProgram, 'localToWorld');
+    gl.uniformMatrix3fv(localToWorldLoc, false, new Float32Array(localToWorld));
+    gl.drawArrays(gl.TRIANGLES, 0, dataArray.length);
 }
 
 var PromisePuzzleState = () => new Promise((resolve, reject) => {
