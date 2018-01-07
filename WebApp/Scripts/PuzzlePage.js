@@ -117,6 +117,7 @@ var RenderPuzzle = () => {
                 dataArray.push({
                     x: vertex.x,
                     y: vertex.y,
+                    // TODO: I guess we could have just done this in the vertex shader.  I would change it.
                     u: (vertex.x - window.min_point.x) / (window.max_point.x - window.min_point.x),
                     v: (vertex.y - window.min_point.y) / (window.max_point.y - window.min_point.y)
                 });
