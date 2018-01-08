@@ -37,6 +37,12 @@ def MakePuzzle(level):
         pentagonC.MakeRegularPolygon(5, Vector(x, y) + Vector().Polar(d, a), 3.0, -math.pi / 5.0)
         cutter_list.append(pentagonC)
     elif level == 3:
-        pass
+        squareA = Cutter()
+        squareA.MakeRegularPolygon(4, Vector(0.0, 0.0), 5.0)
+        cutter_list.append(squareA)
+        squareB = Cutter()
+        squareB.MakeRegularPolygon(4, Vector(-2.5, 2.5), 2.0)
+        cutter_list.append(squareB)
+        #...will this work?...
     puzzle = Puzzle(cutter_list)
     return puzzle
