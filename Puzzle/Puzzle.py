@@ -121,29 +121,32 @@ class Puzzle(object):
         for shape in self.shape_list:
             shape.Render(self.window)
 
-    def NearestCutter(self, point):
+    def ContainingCutter(self, point):
         j = -1
         shortest_distance = 0.0
         for i, cutter in enumerate(self.cutter_list):
-            distance = (point - cutter.center).Length()
-            if j < 0 or distance < shortest_distance:
-                j = i
-                shortest_distance = distance
+            cutter.polygon.TesselateIfNeeded()
+            if cutter.polygon.ContainsPoint(point):
+                distance = (point - cutter.center).Length()
+                if j < 0 or distance < shortest_distance:
+                    j = i
+                    shortest_distance = distance
         return j
 
     def NearestAxisOfSymmetry(self, point):
-        i = self.NearestCutter(point)
-        cutter = self.cutter_list[i]
-        vector = point - cutter.center
-        smallest_angle = 2.0 * math.pi
+        i = self.ContainingCutter(point)
         j = -1
-        for k in range(len(cutter.axes_of_symmetry)):
-            axis = cutter.axes_of_symmetry[k]
-            for normal in [axis, axis.Negated()]:
-                angle = normal.Angle(vector)
-                if angle < smallest_angle:
-                    smallest_angle = angle
-                    j = k
+        if i >= 0:
+            cutter = self.cutter_list[i]
+            vector = point - cutter.center
+            smallest_angle = 2.0 * math.pi
+            for k in range(len(cutter.axes_of_symmetry)):
+                axis = cutter.axes_of_symmetry[k]
+                for normal in [axis, axis.Negated()]:
+                    angle = normal.Angle(vector)
+                    if angle < smallest_angle:
+                        smallest_angle = angle
+                        j = k
         return i, j
 
 class Shape(object):

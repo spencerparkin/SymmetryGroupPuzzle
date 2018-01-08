@@ -52,12 +52,14 @@ class GameServer(object):
             point = Vector().Deserialize(payload['point'])
             type = payload['type']
             if type == 'rotation':
-                i = puzzle.NearestCutter(point)
-                ccw = True if payload['direction'] == 'ccw' else False
-                puzzle.RotateCutter(i, ccw)
+                i = puzzle.ContainingCutter(point)
+                if i >= 0:
+                    ccw = True if payload['direction'] == 'ccw' else False
+                    puzzle.RotateCutter(i, ccw)
             elif type == 'reflection':
                 i, j = puzzle.NearestAxisOfSymmetry(point)
-                puzzle.ReflectCutter(i, j)
+                if i >= 0 and j >= 0:
+                    puzzle.ReflectCutter(i, j)
             data = puzzle.Serialize()
             solved = puzzle.IsSolved()
             return {'puzzle': data, 'solved': solved}
