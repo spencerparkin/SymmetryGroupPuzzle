@@ -147,7 +147,7 @@ var DrawTriangles = (dataArray, localToWorld) => {
 }
 
 var PromisePuzzleState = () => new Promise((resolve, reject) => {
-    $.getJSON('new_puzzle', {'level': 0}, json_data => {
+    $.getJSON('new_puzzle', {'level': 1}, json_data => {
         if(json_data.error) {
             alert(json_data.error);
             reject();

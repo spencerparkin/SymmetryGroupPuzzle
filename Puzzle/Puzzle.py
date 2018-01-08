@@ -8,6 +8,7 @@ from Math.Vector import Vector
 from Math.Polygon import Polygon
 from Math.Transform import AffineTransform
 from Math.Rectangle import Rectangle
+from Math.LineSegment import LineSegment
 
 class Puzzle(object):
     # In order to support non-trivial topologies (i.e., shapes with "holes" in them),
@@ -223,6 +224,12 @@ class Cutter(object):
             point = center + vector
             self.polygon.point_list.append(point)
             self.axes_of_symmetry.append(vector.Normalized())
+        if sides % 2 == 0:
+            for i in range(len(self.polygon.point_list)):
+                j = (i + 1) % len(self.polygon.point_list)
+                midpoint = LineSegment(self.polygon.point_list[i], self.polygon.point_list[j]).Lerp(0.5)
+                axis = midpoint - center
+                self.axes_of_symmetry.append(axis.Normalized())
 
     def IsValidSymmetry(self, symmetry_transform):
         # Make sure that the given transform permutes the vertices of our polygon.
