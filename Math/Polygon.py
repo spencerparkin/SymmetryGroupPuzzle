@@ -16,7 +16,7 @@ def CyclicIteration(start, stop, modulus, step=1):
 class Polygon(object):
     # These may be convex or concave polygons in the plane.
     # The list of vertices is always ordered counter-clockwise.
-    def __init__(self, point_list = None):
+    def __init__(self, point_list=None):
         self.point_list = point_list if point_list is not None else []
         self.triangle_list = []
 

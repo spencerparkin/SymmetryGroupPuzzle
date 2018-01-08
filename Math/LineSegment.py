@@ -5,7 +5,7 @@ import math
 from Math.Vector import Vector
 
 class LineSegment(object):
-    def __init__(self, pointA, pointB):
+    def __init__(self, pointA=None, pointB=None):
         self.pointA = pointA
         self.pointB = pointB
 

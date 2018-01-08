@@ -13,7 +13,10 @@
 
 import os
 import cherrypy
+import json
 
+from Math.Vector import Vector
+from Puzzle.Puzzle import Puzzle
 from Puzzle.Level import MakePuzzle
 
 class GameServer(object):
@@ -33,6 +36,31 @@ class GameServer(object):
             puzzle.Scramble(50)
             data = puzzle.Serialize()
             return {'puzzle': data}
+        except Exception as ex:
+            return {'error': str(ex)}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def mutate_puzzle(self, **kwargs):
+        try:
+            content_length = cherrypy.request.headers['Content-Length']
+            payload = cherrypy.request.body.read(int(content_length))
+            payload = payload.decode('utf-8')
+            payload = json.loads(payload)
+            data = payload['data']
+            puzzle = Puzzle().Deserialize(data)
+            point = Vector().Deserialize(payload['point'])
+            type = payload['type']
+            if type == 'rotation':
+                i = puzzle.NearestCutter(point)
+                ccw = True if payload['direction'] == 'ccw' else False
+                puzzle.RotateCutter(i, ccw)
+            elif type == 'reflection':
+                i, j = puzzle.NearestAxisOfSymmetry(point)
+                puzzle.ReflectCutter(i, j)
+            data = puzzle.Serialize()
+            solved = puzzle.IsSolved()
+            return {'puzzle': data, 'solved': solved}
         except Exception as ex:
             return {'error': str(ex)}
 

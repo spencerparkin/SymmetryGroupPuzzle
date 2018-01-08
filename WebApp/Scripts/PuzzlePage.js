@@ -24,8 +24,7 @@ var OnDocumentReady = () => {
 
 	    // Register some canvas callbacks.
 	    $('#canvas').click(OnCanvasClicked);
-	    /*$('#canvas').mousemove(OnCanvasMouseMoved);
-        $('#canvas').bind('mousewheel', OnCanvasMouseWheel)*/
+	    //$('#canvas').mousemove(OnCanvasMouseMoved);
 
         // Get the background image texture and the puzzle state, then render the puzzle.
         Promise.all([
@@ -66,7 +65,7 @@ var RenderPuzzle = () => {
     let minPointLoc = gl.getUniformLocation(puzzleShaderProgram, 'minPoint');
     let maxPointLoc = gl.getUniformLocation(puzzleShaderProgram, 'maxPoint');
 
-    let window = $.extend({}, puzzleState.window);
+    let window = puzzleState.window;
     let textureAspectRatio = puzzleTextureSize.width / puzzleTextureSize.height;
     let windowWidth = window.max_point.x - window.min_point.x;
     let windowHeight = window.max_point.y - window.min_point.y;
@@ -220,14 +219,70 @@ var PromiseShader = (source, type) => new Promise((resolve, reject) => {
     });
 });
 
+var GetMouseLocation = event => {
+    let canvas = $('#canvas')[0];
+    let context = canvas.getContext('2d');
+    let rect = canvas.getBoundingClientRect();
+    let lerpX = (event.clientX - rect.left) / (rect.right - rect.left);
+    let lerpY = 1.0 - (event.clientY - rect.top) / (rect.bottom - rect.top);
+    let window = puzzleState.window;
+    let location = {
+        x: window.min_point.x + lerpX * (window.max_point.x - window.min_point.x),
+        y: window.min_point.y + lerpY * (window.max_point.y - window.min_point.y)
+    }
+    return location;
+}
+
 var OnCanvasClicked = event => {
+    let location = GetMouseLocation(event);
+    let promise = $.ajax({
+        url: 'mutate_puzzle',
+        data: JSON.stringify({
+            data: puzzleState,
+            point: location,
+            type: 'reflection'
+        }),
+        type: 'POST',
+        contentType: 'application/json'
+    });
+    HandleStateChangePromise(promise);
 }
 
 var OnCanvasMouseMoved = event => {
 }
 
 var OnCanvasMouseWheel = event => {
-    alert('Wheel!');
+    let location = GetMouseLocation(event);
+    let direction = event.wheelDeltaY < 0 ? 'ccw' : 'cw';
+    let promise = $.ajax({
+        url: 'mutate_puzzle',
+        data: JSON.stringify({
+            data: puzzleState,
+            point: location,
+            type: 'rotation',
+            direction: direction
+        }),
+        type: 'POST',
+        contentType: 'application/json'
+    });
+    HandleStateChangePromise(promise);
+    event.preventDefault();
+}
+
+var HandleStateChangePromise = promise => {
+    promise.done(json_data => {
+        if(json_data.error) {
+            alert('Error: ' + json_data.error);
+        } else {
+            puzzleState = json_data.puzzle;
+            RenderPuzzle();
+            if(json_data.solved) {
+                alert('You are a super star!');
+            }
+        }
+    }).fail(() => {
+        alert('AJAX request failed!');    
+    });
 }
 
 var OnNewPuzzleButtonClicked = () => {

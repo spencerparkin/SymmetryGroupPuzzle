@@ -13,7 +13,7 @@
 		<button type="button" onclick="OnNewImageButtonClicked()">New Image</button>
 		<br>
 		<br>
-		<canvas id="canvas"></canvas>
+		<canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
 		<p>
 			<b>How to play: </b>In the above image, a number of polygons, acting
 			as cookie cutters, have undergone zero or more of their symmetry transforms.
@@ -26,6 +26,17 @@
 			wheel.  A single forward motion of the mouse wheel produces a clock-wise rotation;
 			a single backward motion, a counter-clock-wise rotation.
 			To reflect a polygon, click inside of it near one of its axes of symmetry.
+		</p>
+		<p>
+			<b>Implementation: </b>This puzzle game is an interesting problem in computational geometry.
+			For a look at the algorithms and data-structures, the source code can be found <a href="http://github.com/spencerparkin/SymmetryGroupPuzzle" target="_blank">here</a>.
+			As a web-app, the best possible user experience would be had if the puzzle mechanics were
+			implemented completely client-side.  Not wanting to do computational geometry in JavaScript (my least
+			favorite programming language), the mechanics are implemented server-side in Python.
+			This means a round-trip communication between server and client per puzzle state change,
+			which isn't terrible if the network is fast enough.  Even still, some latency can be noticed by
+			the user.  My testing thus far, however, has shown the application to be of fairly practical use, nevertheless.
+			Rendering is performed using WebGL.
 		</p>
 	</body>
 </html>

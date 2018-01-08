@@ -12,8 +12,8 @@ from Math.Rectangle import Rectangle
 class Puzzle(object):
     # In order to support non-trivial topologies (i.e., shapes with "holes" in them),
     # we'll have to use polygons that are self-tangent.
-    def __init__(self, cutter_list):
-        self.cutter_list = cutter_list
+    def __init__(self, cutter_list=None):
+        self.cutter_list = cutter_list if cutter_list is not None else []
         # We use the cutting polygons to generate the initial list of shapes.
         # As the game progresses, this list of shapes may be further cut up.
         # The shape list is maintained as a set of non-overlapping polygons.
@@ -118,7 +118,6 @@ class Puzzle(object):
             shape.Render(self.window)
 
     def NearestCutter(self, point):
-        # TODO: Require point to be inside cutter?
         j = -1
         shortest_distance = 0.0
         for i, cutter in enumerate(self.cutter_list):
@@ -133,19 +132,19 @@ class Puzzle(object):
         cutter = self.cutter_list[i]
         vector = point - cutter.center
         smallest_angle = 2.0 * math.pi
-        i = -1
-        for j in range(len(cutter.axes_of_symmetry)):
-            axis = cutter.axes_of_symmetry[j]
+        j = -1
+        for k in range(len(cutter.axes_of_symmetry)):
+            axis = cutter.axes_of_symmetry[k]
             for normal in [axis, axis.Negated()]:
                 angle = normal.Angle(vector)
                 if angle < smallest_angle:
                     smallest_angle = angle
-                    i = j
-        return i
+                    j = k
+        return i, j
 
 class Shape(object):
-    def __init__(self, polygon, transform=None):
-        self.polygon = polygon
+    def __init__(self, polygon=None, transform=None):
+        self.polygon = polygon if polygon is not None else Polygon()
         # There is some concern that this will suffer from accumulated round-off error.
         # We try to mitigate the problem here a bit by re-orthonormalizing all the time.
         self.transform = transform if transform is not None else AffineTransform()
