@@ -45,6 +45,8 @@ var RenderPuzzle = () => {
         return false;
     }
 
+    $('#winner').hide();
+
     let canvas = $('#canvas')[0];
     canvas.width = puzzleTextureSize.width;
     canvas.height = puzzleTextureSize.height;
@@ -277,7 +279,9 @@ var HandleStateChangePromise = promise => {
             puzzleState = json_data.puzzle;
             RenderPuzzle();
             if(json_data.solved) {
-                alert('You are a super star!');
+                $('#winner').show();
+            } else {
+                $('#winner').hide();
             }
         }
     }).fail(() => {
