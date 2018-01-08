@@ -3,6 +3,10 @@ body {
 	text-align: center;
 }
 
+p {
+    text-align: left;
+}
+
 canvas {
 	border: 1px solid black;
 	width: 900px;
