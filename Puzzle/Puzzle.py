@@ -37,7 +37,7 @@ class Puzzle(object):
             for i in range(len(cutter.polygon.point_list)):
                 point = cutter.polygon.point_list[i]
                 self.window.GrowForPoint(point)
-        self.window.Scale(1.5)
+        self.window.Scale(1.1)
 
     def Serialize(self):
         # I thought about making JSONEncoder derivative, but this is just easier, I think.

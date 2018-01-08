@@ -14,6 +14,7 @@
 import os
 import cherrypy
 import json
+import datetime
 
 from Math.Vector import Vector
 from Puzzle.Puzzle import Puzzle
@@ -43,6 +44,7 @@ class GameServer(object):
     @cherrypy.tools.json_out()
     def mutate_puzzle(self, **kwargs):
         try:
+            start_time = datetime.datetime.now()
             content_length = cherrypy.request.headers['Content-Length']
             payload = cherrypy.request.body.read(int(content_length))
             payload = payload.decode('utf-8')
@@ -65,6 +67,10 @@ class GameServer(object):
             return {'puzzle': data, 'solved': solved}
         except Exception as ex:
             return {'error': str(ex)}
+        finally:
+            stop_time = datetime.datetime.now()
+            delta_time = stop_time - start_time
+            print('Mutate time: %f seconds' % delta_time.total_seconds())
 
 if __name__ == '__main__':
     root_dir = os.path.dirname(os.path.abspath(__file__))
