@@ -57,7 +57,10 @@ class Puzzle(object):
         return self
 
     def IsSolved(self):
-        pass # We are solved if every shape has the identity transform.
+        for shape in self.shape_list:
+            if not shape.transform.IsIdentity():
+                return False
+        return True
 
     def RotateCutter(self, i, ccw=True):
         cutter = self.cutter_list[i]

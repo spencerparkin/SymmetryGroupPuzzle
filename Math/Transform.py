@@ -29,6 +29,9 @@ class LinearTransform(object):
         self.xAxis = Vector(1.0, 0.0)
         self.yAxis = Vector(0.0, 1.0)
     
+    def IsIdentity(self):
+        return self.xAxis.IsPoint(Vector(1.0, 0.0)) and self.yAxis.IsPoint(Vector(0.0, 1.0))
+    
     def Determinant(self):
         return self.xAxis.Cross(self.yAxis)
 
@@ -104,6 +107,11 @@ class AffineTransform(object):
     def Identity(self):
         self.linearTransform.Identity()
         self.translation = Vector(0.0, 0.0)
+
+    def IsIdentity(self):
+        if not self.translation.IsPoint(Vector(0.0, 0.0)):
+            return False
+        return self.linear_transform.IsIdentity()
 
     def Inverted(self):
         inverse = AffineTransform()
