@@ -4,6 +4,7 @@ var gl = null;
 var puzzleState = null;
 var puzzleTexture = null;
 var puzzleTextureSize = null;
+var puzzleTextureNumber = 0;
 var puzzleShaderProgram = null;
 var puzzleVertexBuffer = null;
 var puzzleVertexBufferSize = 1024;
@@ -65,8 +66,20 @@ var RenderPuzzle = () => {
     let minPointLoc = gl.getUniformLocation(puzzleShaderProgram, 'minPoint');
     let maxPointLoc = gl.getUniformLocation(puzzleShaderProgram, 'maxPoint');
 
-    // TODO: Expand window of puzzle to match aspect ratio of the texture/canvas.
-    let window = puzzleState.window;
+    let window = $.extend({}, puzzleState.window);
+    let textureAspectRatio = puzzleTextureSize.width / puzzleTextureSize.height;
+    let windowWidth = window.max_point.x - window.min_point.x;
+    let windowHeight = window.max_point.y - window.min_point.y;
+    let windowAspectRatio = windowWidth / windowHeight;
+    if(textureAspectRatio > windowAspectRatio) {
+        let delta = 0.5 * (windowWidth * puzzleTextureSize.height / puzzleTextureSize.width - windowHeight);
+        window.min_point.y -= delta;
+        window.max_point.y += delta;
+    } else {
+        let delta = 0.5 * (windowHeight * puzzleTextureSize.width / puzzleTextureSize.height - windowWidth);
+        window.min_point.x -= delta;
+        window.max_point.x += delta;
+    }
 
     gl.uniform2f(minPointLoc, window.min_point.x, window.min_point.y);
     gl.uniform2f(maxPointLoc, window.max_point.x, window.max_point.y);
@@ -164,7 +177,7 @@ var PromiseTexture = () => new Promise((resolve, reject) => {
     image.onerror = () => {
         reject();
     }
-    image.src = 'Images/Image0.png';
+    image.src = 'Images/Image' + puzzleTextureNumber.toString() + '.png';
 });
 
 var PromiseShaderProgram = () => new Promise((resolve, reject) => {
@@ -215,6 +228,16 @@ var OnCanvasMouseMoved = event => {
 
 var OnCanvasMouseWheel = event => {
     alert('Wheel!');
+}
+
+var OnNewPuzzleButtonClicked = () => {
+}
+
+var OnNewImageButtonClicked = () => {
+    puzzleTextureNumber = (puzzleTextureNumber + 1) % 10;
+    PromiseTexture().then(() => {
+        RenderPuzzle();
+    });
 }
 
 $(document).ready(OnDocumentReady);
