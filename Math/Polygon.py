@@ -59,6 +59,13 @@ class Polygon(object):
             radius /= float(len(self.point_list))
             return radius
 
+    def Area(self):
+        self.TesselateIfNeeded()
+        area = 0.0
+        for triangle in self.triangle_list:
+            area += abs(triangle.SignedArea())
+        return area
+
     def TesselateIfNeeded(self):
         # Of course, if we already have a tesselation, we have no
         # way of knowing if it is still valid.  Vertices may have
