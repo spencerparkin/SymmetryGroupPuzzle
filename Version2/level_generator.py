@@ -14,8 +14,14 @@ def Cross(vector_a, vector_b):
 def Dot(vector_a, vector_b):
     return vector_a.real * vector_b.real + vector_a.imag * vector_b.imag
 
+def Project(vector, normal):
+    return Dot(vector, normal) * normal
+
+def Reject(vector, normal):
+    return vector - Project(vector, normal)
+
 def Reflect(vector, normal):
-    return 2.0 * Dot(vector, normal) * normal - vector
+    return Project(vector, normal) - Reject(vector, normal)
 
 def Rotate(vector, angle):
     return vector * cmath.exp(complex(0.0, angle))
@@ -35,12 +41,14 @@ class Shape(object):
         for triangle in self.triangle_list:
             for i in range(3):
                 j = (i + 1) % 3
-                vector_a = point - self.point_list[triangle[i]]
-                vector_b = point - self.point_list[triangle[j]]
+                vector_a = self.point_list[triangle[i]] - point
+                vector_b = self.point_list[triangle[j]] - point
                 det = Cross(vector_a, vector_b)
                 if det < 0.0:
-                    return False
-        return True
+                    break
+            else:
+                return True
+        return False
 
     def Transform(self, transform):
         # If there is any shear in the given transform, then not all
@@ -170,8 +178,26 @@ class ImagePermutation(object):
         self.width = width
         self.height = height
 
+    def IterateCoordsNear(self, coords):
+        coords_list = []
+        for i in range(-10, 10):
+            for j in range(-10, 10):
+                coords_list.append((coords[0] + i, coords[1] + j))
+        coords_list.sort(key=lambda other_coords: (other_coords[0] - coords[0])**2 + (other_coords[1] - coords[1])**2)
+        for other_coords in coords_list:
+            if 0 <= other_coords[0] < self.width and 0 <= other_coords[1] < self.height: 
+                yield other_coords
+
     def Generate(self, world_window, shape, symmetry):
+        hit_set = set()
         image_window = Window(complex(0.0, 0.0), complex(float(self.width - 1), float(self.height - 1)))
+        for i in range(self.width):
+            for j in range(self.height):
+                coords = self.map[i][j]
+                image_point = complex(float(coords[0]), float(coords[1]))
+                world_point = world_window.Map(image_point, image_window)
+                if not shape.ContainsPoint(world_point):
+                    hit_set.add(coords)
         for i in range(self.width):
             for j in range(self.height):
                 coords = self.map[i][j]
@@ -181,7 +207,15 @@ class ImagePermutation(object):
                     world_point = symmetry.Transform(world_point)
                     image_point = image_window.Map(world_point, world_window)
                     coords = (int(round(image_point.real)), int(round(image_point.imag)))
+                    if coords in hit_set:
+                        for other_coords in self.IterateCoordsNear(coords): 
+                            if other_coords not in hit_set:
+                                coords = other_coords
+                                break
+                        else:
+                            raise Exception('Could not find coords for permutation mapping.')
                     self.map[i][j] = coords
+                    hit_set.add(coords)
 
     def IsValid(self):
         count_matrix = [[0 for j in range(self.width)] for i in range(self.height)]
@@ -216,23 +250,24 @@ class Level_1(LevelBase):
     def MakeShapes(self):
         shape_list = []
 
-        transform = AffineTransform()
-        transform.MakeScale(4.0)
-        transform.Concatinate(AffineTransform().MakeTranslation(complex(-2.0, 0.0)))
+        #transform = AffineTransform()
+        #transform.MakeScale(4.0)
+        #transform.Concatinate(AffineTransform().MakeTranslation(complex(-2.0, 0.0)))
         shape = Shape().MakeRegularPolygon(1.0, 3)
-        shape.Transform(transform)
+        #shape.Transform(transform)
         shape_list.append(shape)
 
-        transform = AffineTransform()
+        '''transform = AffineTransform()
         transform.MakeScale(4.0)
         transform.Concatinate(AffineTransform().MakeRotation(math.pi / 3.0))
         transform.Concatinate(AffineTransform().MakeTranslation(complex(2.0, 0.0)))
         shape = Shape().MakeRegularPolygon(1.0, 3)
         shape.Transform(transform)
-        shape_list.append(shape)
+        shape_list.append(shape)'''
 
         return shape_list
 
+'''
 class Level_2(LevelBase):
     def __init__(self):
         super().__init__()
@@ -257,7 +292,7 @@ class Level_2(LevelBase):
         shape.Transform(transform)
         shape_list.append(shape)
 
-        return shape_list
+        return shape_list'''
 
 if __name__ == '__main__':
 
