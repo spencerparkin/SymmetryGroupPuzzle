@@ -6,6 +6,7 @@ import math
 import cmath
 import copy
 import json
+import argparse
 
 def Cross(vector_a, vector_b):
     return vector_a.real * vector_b.imag - vector_a.imag * vector_b.real
@@ -17,7 +18,7 @@ def Reflect(vector, normal):
     return 2.0 * Dot(vector, normal) * normal - vector
 
 def Rotate(vector, angle):
-    return vector * complex(math.cos(angle), math.sin(angle))
+    return vector * cmath.exp(complex(0.0, angle))
 
 class Shape(object):
     def __init__(self):
@@ -58,7 +59,7 @@ class Shape(object):
         self.triangle_list = []
         for i in range(sides):
             angle = 2.0 * math.pi * float(i) / float(sides)
-            normal = cmath.exp(angle)
+            normal = cmath.exp(complex(0.0, angle))
             self.point_list.append(radius * normal)
             self.symmetry_list.append(AffineTransform().MakeReflection(normal))
         self.point_list.append(complex(0.0, 0.0))
@@ -78,9 +79,11 @@ class Window(object):
 
     def Map(self, point, window):
         u = (point.real - window.min_point.real) / (window.max_point.real - window.min_point.real)
-        v = (point.imag - window.min_point.imag) / (window.max_point.imag - window.max_point.imag)
-        point.real = self.min_point.real + u * (self.max_point.real - self.min_point.real)
-        point.imag = self.min_point.imag + v * (self.max_point.imag - self.min_point.imag)
+        v = (point.imag - window.min_point.imag) / (window.max_point.imag - window.min_point.imag)
+        point = complex(
+            self.min_point.real + u * (self.max_point.real - self.min_point.real),
+            self.min_point.imag + v * (self.max_point.imag - self.min_point.imag)
+        )
         return point
 
 class AffineTransform(object):
@@ -100,51 +103,66 @@ class AffineTransform(object):
         self.x_axis = transform.Transform(self.x_axis, False)
         self.y_axis = transform.Transform(self.y_axis, False)
         self.translation = transform.Transform(self.translation)
+        return self
 
     def __mul__(self, other):
         return AffineTransform().Concatinate(self).Concatinate(other)
 
     def Determinant(self):
-        pass
+        return Cross(self.x_axis, self.y_axis)
 
     def Invert(self):
-        pass
+        try:
+            x_axis = complex(self.y_axis.imag, -self.x_axis.imag)
+            y_axis = complex(-self.y_axis.real, self.x_axis.real)
+            det = self.Determinant()
+            self.x_axis = x_axis / det
+            self.y_axis = y_axis / det
+        except ZeroDivisionError:
+            return False
 
     def MakeIdentity(self):
         self.x_axis = complex(1.0, 0.0)
         self.y_axis = complex(0.0, 1.0)
         self.translation = complex(0.0, 0.0)
+        return self
 
     def MakeTranslation(self, translation):
         self.MakeIdentity()
         self.translation = translation
+        return self
 
     def MakeReflection(self, normal):
         self.MakeIdentity()
         self.x_axis = Reflect(self.x_axis, normal)
         self.y_axis = Reflect(self.y_axis, normal)
+        return self
 
     def MakeRotation(self, angle):
         self.MakeIdentity()
         self.x_axis = Rotate(self.x_axis, angle)
         self.y_axis = Rotate(self.y_axis, angle)
+        return self
 
     def MakeReflectionAboutPoint(self, point, normal):
         self.MakeIdentity()
         self.Concatinate(AffineTransform().MakeTranslation(-point))
         self.Concatinate(AffineTransform().MakeReflection(normal))
         self.Concatinate(AffineTransform().MakeTranslation(point))
+        return self
 
     def MakeRotationAboutPoint(self, point, angle):
         self.MakeIdentity()
         self.Concatinate(AffineTransform().MakeTranslation(-point))
         self.Concatinate(AffineTransform().MakeRotation(angle))
         self.Concatinate(AffineTransform().MakeTranslation(point))
+        return self
 
     def MakeScale(self, scale):
         self.MakeIdentity()
         self.x_axis *= scale
         self.y_axis *= scale
+        return self
 
 class ImagePermutation(object):
     def __init__(self, width, height):
@@ -243,13 +261,20 @@ class Level_2(LevelBase):
 
 if __name__ == '__main__':
 
-    image_width = 512
-    image_height = 512
+    parser = argparse.ArgumentParser()
 
-    for level_class in LevelBase.__subclasses__:
+    parser.add_argument('--width', help='Specify image width in pixels.  Default is 512.', type=str)
+    parser.add_argument('--height', help='Specify image height in pixels.  Default is 512.', type=str)
+
+    args = parser.parse_args()
+
+    image_width = int(args.width) if args.width is not None else 512
+    image_height = int(args.height) if args.height is not None else 512
+
+    for level_class in LevelBase.__subclasses__():
         level = level_class()
         level_data = {
-            'name': level_class.__class__,
+            'name': level_class.__name__,
             'image_width': image_width,
             'image_height': image_height,
             'permutation_list': []
@@ -258,7 +283,8 @@ if __name__ == '__main__':
         world_window = level.MakeWindow()
         shape_list = level.MakeShapes()
         for shape in shape_list:
-            for symmetry in shape.symmetry_list:
+            for i, symmetry in enumerate(shape.symmetry_list):
+                print('Processing permutation %d...' % i)
                 perm = ImagePermutation(image_width, image_height)
                 perm.Generate(world_window, shape, symmetry)
                 if not perm.IsValid():
