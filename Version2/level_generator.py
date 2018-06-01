@@ -35,19 +35,21 @@ class Shape(object):
         self.triangle_list = [] # These must be wound CCW in the plane.
         # There might be a way to calculate the symmetries of the shape
         # as a function of the shape itself, but until I can figure that
-        # out, the symmetries will be computed with fore-knowledge of the shape.
-        # Not all rotation symmetries need appear in this list.  We only need
-        # enough of them to generate the group of symmetries of the shape.
+        # out, the symmetries will be computed using human-knowledge of the shape.
+        # Not all symmetries of the shape need appear in this list.  We only need
+        # enough of them to generate the group of symmetries of the shape.  We
+        # actually want a bit more than that.  We want as many as are convenient
+        # for the user who is working in the group.
         self.symmetry_list = []
 
-    def ContainsPoint(self, point):
+    def ContainsPoint(self, point, epsilon=1e-9):
         for triangle in self.triangle_list:
             for i in range(3):
                 j = (i + 1) % 3
                 vector_a = self.point_list[triangle[i]] - point
                 vector_b = self.point_list[triangle[j]] - point
                 det = Cross(vector_a, vector_b)
-                if det < 0.0:
+                if det <= -epsilon:
                     break
             else:
                 return True
@@ -79,6 +81,7 @@ class Shape(object):
             j = (i + 1) % sides
             self.triangle_list.append((i, j, sides))
         self.symmetry_list.append(AffineTransform().MakeRotation(2.0 * math.pi / float(sides)))
+        self.symmetry_list.append(AffineTransform().MakeRotation(-2.0 * math.pi / float(sides)))
         return self
 
     # TODO: There are other interesting kinds of shapes we can make.
@@ -290,12 +293,12 @@ class Level_1(LevelBase):
     def MakeShapes(self):
         shape_list = []
 
-        #transform = AffineTransform()
-        #transform.MakeScale(4.0)
-        #transform.Concatinate(AffineTransform().MakeTranslation(complex(-2.5, 0.0)))
-        #shape = Shape().MakeRegularPolygon(1.0, 3)
-        #shape.Transform(transform)
-        #shape_list.append(shape)
+        transform = AffineTransform()
+        transform.MakeScale(4.0)
+        transform.Concatinate(AffineTransform().MakeTranslation(complex(-2.5, 0.0)))
+        shape = Shape().MakeRegularPolygon(1.0, 3)
+        shape.Transform(transform)
+        shape_list.append(shape)
 
         transform = AffineTransform()
         transform.MakeScale(4.0)
