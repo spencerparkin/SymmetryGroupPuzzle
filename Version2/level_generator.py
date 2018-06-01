@@ -26,6 +26,9 @@ def Reflect(vector, normal):
 def Rotate(vector, angle):
     return vector * cmath.exp(complex(0.0, angle))
 
+def SquareDistance(point_a, point_b):
+    return (point_a.real - point_b.real)**2 + (point_a.imag - point_b.imag)**2
+
 class Shape(object):
     def __init__(self):
         self.point_list = []
@@ -57,7 +60,8 @@ class Shape(object):
             point = transform.Transform(point)
             self.point_list[i] = point
         inverse = transform.Copy()
-        inverse.Invert()
+        if not inverse.Invert():
+            raise Exception('Failed to invert symmetry transform.')
         for i, symmetry in enumerate(self.symmetry_list):
             symmetry = inverse * symmetry * transform
             self.symmetry_list[i] = symmetry
@@ -126,6 +130,8 @@ class AffineTransform(object):
             det = self.Determinant()
             self.x_axis = x_axis / det
             self.y_axis = y_axis / det
+            self.translation = self.Transform(-self.translation, False)
+            return True
         except ZeroDivisionError:
             return False
 
@@ -174,50 +180,100 @@ class AffineTransform(object):
 
 class ImagePermutation(object):
     def __init__(self, width, height):
-        self.map = [[(i, j) for j in range(width)] for i in range(height)]
+        self.map = None
         self.width = width
         self.height = height
 
-    def IterateCoordsNear(self, coords):
-        coords_list = []
-        for i in range(-10, 10):
-            for j in range(-10, 10):
-                coords_list.append((coords[0] + i, coords[1] + j))
-        coords_list.sort(key=lambda other_coords: (other_coords[0] - coords[0])**2 + (other_coords[1] - coords[1])**2)
-        for other_coords in coords_list:
-            if 0 <= other_coords[0] < self.width and 0 <= other_coords[1] < self.height: 
-                yield other_coords
-
     def Generate(self, world_window, shape, symmetry):
-        hit_set = set()
+        
+        # Build up a list of jumps made from the image to itself.
+        queue = []
         image_window = Window(complex(0.0, 0.0), complex(float(self.width - 1), float(self.height - 1)))
         for i in range(self.width):
             for j in range(self.height):
-                coords = self.map[i][j]
-                image_point = complex(float(coords[0]), float(coords[1]))
-                world_point = world_window.Map(image_point, image_window)
-                if not shape.ContainsPoint(world_point):
-                    hit_set.add(coords)
+                source_image_point = complex(float(i), float(j))
+                source_world_point = world_window.Map(source_image_point, image_window)
+                if shape.ContainsPoint(source_world_point):
+                    target_world_point = symmetry.Transform(source_world_point)
+                    target_image_point = image_window.Map(target_world_point, world_window)
+                    if not shape.ContainsPoint(target_world_point):
+                        raise Exception('Invalid symmetry detected!')
+                else:
+                    target_image_point = source_image_point
+                jump = {
+                    'source_image_point': source_image_point,
+                    'target_image_point': target_image_point
+                }
+                queue.append(jump)
+        
+        # Ultimately, we must assign exactly one jump to each point in the image.
+        assignment_map = [[None for i in range(self.height)] for j in range(self.width)]
+        assignment_list = []
         for i in range(self.width):
             for j in range(self.height):
-                coords = self.map[i][j]
-                image_point = complex(float(coords[0]), float(coords[1]))
-                world_point = world_window.Map(image_point, image_window)
-                if shape.ContainsPoint(world_point):
-                    world_point = symmetry.Transform(world_point)
-                    image_point = image_window.Map(world_point, world_window)
-                    coords = (int(round(image_point.real)), int(round(image_point.imag)))
-                    if coords in hit_set:
-                        for other_coords in self.IterateCoordsNear(coords): 
-                            if other_coords not in hit_set:
-                                coords = other_coords
-                                break
-                        else:
-                            raise Exception('Could not find coords for permutation mapping.')
-                    self.map[i][j] = coords
-                    hit_set.add(coords)
+                image_point = complex(float(i), float(j))
+                assignment = {
+                    'image_point': image_point,
+                    'assigned_jump': None
+                }
+                assignment_list.append(assignment)
+                assignment_map[int(image_point.real)][int(image_point.imag)] = assignment
+        
+        # Process the queue.  Fit the jumps to the best possible image points.
+        while len(queue) > 0:
+            if len(queue) % 1000 == 0:
+                print('Queue size = %d' % len(queue))
+            jump = queue.pop()
+            narrowed_assignment_list = []
+            target_image_point = jump['target_image_point']
+            source_image_point = jump['source_image_point']
+            center_x = int(round(target_image_point.real))
+            center_y = int(round(target_image_point.imag))
+            start = -4
+            stop = 5
+            if source_image_point == target_image_point:
+                start = 0
+                stop = 1
+            for i in range(start, stop):
+                x = center_x + i
+                if 0 <= x < self.width:
+                    for j in range(start, stop):
+                        y = center_y + j
+                        if 0 <= y < self.height:
+                            narrowed_assignment_list.append(assignment_map[x][y])
+            while True:
+                narrowed_assignment_list.sort(key=lambda assignment: SquareDistance(assignment['image_point'], jump['target_image_point']))
+                for assignment in narrowed_assignment_list:
+                    assigned_jump = assignment['assigned_jump']
+                    if assigned_jump is None:
+                        assignment['assigned_jump'] = jump
+                        break
+                    else:
+                        square_distance_a = SquareDistance(assignment['image_point'], jump['target_image_point'])
+                        square_distance_b = SquareDistance(assignment['image_point'], assigned_jump['target_image_point'])
+                        if square_distance_a < square_distance_b:
+                            queue.append(assigned_jump)
+                            assignment['assigned_jump'] = jump
+                            break
+                else:
+                    if narrowed_assignment_list == assignment_list:
+                        raise Exception('Failed to process jump!')
+                    narrowed_assignment_list = assignment_list
+                    print('Doing slow iteration!!!')
+                    continue
+                break
+        
+        # Finally, build the bijective mapping.
+        self.map = [[None for i in range(self.height)] for j in range(self.width)]
+        for assignment in assignment_list:
+            source_image_point = assignment['assigned_jump']['source_image_point']
+            target_image_point = assignment['image_point']
+            in_coords = (int(source_image_point.real), int(source_image_point.imag))
+            out_coords = (int(target_image_point.real), int(target_image_point.imag))
+            self.map[in_coords[0]][in_coords[1]] = out_coords
 
     def IsValid(self):
+        # This is just a sanity check.
         count_matrix = [[0 for j in range(self.width)] for i in range(self.height)]
         for i in range(self.width):
             for j in range(self.height):
@@ -225,8 +281,7 @@ class ImagePermutation(object):
                 count_matrix[coords[0]][coords[1]] += 1
         for i in range(self.width):
             for j in range(self.height):
-                coords = self.map[i][j]
-                if count_matrix[coords[0]][coords[1]] != 1:
+                if count_matrix[i][j] != 1:
                     return False
         return True
 
@@ -252,18 +307,18 @@ class Level_1(LevelBase):
 
         #transform = AffineTransform()
         #transform.MakeScale(4.0)
-        #transform.Concatinate(AffineTransform().MakeTranslation(complex(-2.0, 0.0)))
-        shape = Shape().MakeRegularPolygon(1.0, 3)
+        #transform.Concatinate(AffineTransform().MakeTranslation(complex(-2.5, 0.0)))
+        #shape = Shape().MakeRegularPolygon(1.0, 3)
         #shape.Transform(transform)
-        shape_list.append(shape)
+        #shape_list.append(shape)
 
-        '''transform = AffineTransform()
+        transform = AffineTransform()
         transform.MakeScale(4.0)
         transform.Concatinate(AffineTransform().MakeRotation(math.pi / 3.0))
-        transform.Concatinate(AffineTransform().MakeTranslation(complex(2.0, 0.0)))
+        transform.Concatinate(AffineTransform().MakeTranslation(complex(2.5, 0.0)))
         shape = Shape().MakeRegularPolygon(1.0, 3)
         shape.Transform(transform)
-        shape_list.append(shape)'''
+        shape_list.append(shape)
 
         return shape_list
 
@@ -317,9 +372,10 @@ if __name__ == '__main__':
         print('Processing %s...' % level_data['name'])
         world_window = level.MakeWindow()
         shape_list = level.MakeShapes()
-        for shape in shape_list:
-            for i, symmetry in enumerate(shape.symmetry_list):
-                print('Processing permutation %d...' % i)
+        for i, shape in enumerate(shape_list):
+            print('Processing shape %d...' % i)
+            for j, symmetry in enumerate(shape.symmetry_list):
+                print('Processing permutation %d...' % j)
                 perm = ImagePermutation(image_width, image_height)
                 perm.Generate(world_window, shape, symmetry)
                 if not perm.IsValid():
