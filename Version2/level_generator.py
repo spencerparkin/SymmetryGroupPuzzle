@@ -272,6 +272,32 @@ class ImagePermutation(object):
                     return False
         return True
 
+    def GenerateImageFile(self, file):
+        
+        print('Generating image data for permutation...')
+        image_data = []
+        for i in range(self.width):
+            for j in range(self.height):
+                coords = self.map[i][j]
+                r, g = self.EncodeNumber(coords[0])
+                b, a = self.EncodeNumber(coords[1])
+                color = (r, g, b, a)
+                image_data.append(color)
+
+        print('Writing permutation image file: %s...' % file)
+        from PIL import Image
+        image = Image.new('RGBA', (self.width, self.height))
+        image.putdata(image_data)
+        image.save(file)
+    
+    def EncodeNumber(self, number):
+        lower_part = number % 256
+        upper_part = number // 256
+        check = lower_part + 256 * upper_part
+        if check != number:
+            raise Exception('Oops!')
+        return lower_part, upper_part
+
 class LevelBase(object):
     def __init__(self):
         pass
@@ -282,7 +308,7 @@ class LevelBase(object):
     def MakeShapes(self):
         raise Exception('Pure virtual call.')
 
-class Level_1(LevelBase):
+class Level1(LevelBase):
     def __init__(self):
         super().__init__()
 
@@ -309,8 +335,7 @@ class Level_1(LevelBase):
 
         return shape_list
 
-'''
-class Level_2(LevelBase):
+class Level2(LevelBase):
     def __init__(self):
         super().__init__()
 
@@ -334,7 +359,7 @@ class Level_2(LevelBase):
         shape.Transform(transform)
         shape_list.append(shape)
 
-        return shape_list'''
+        return shape_list
 
 if __name__ == '__main__':
 
@@ -367,19 +392,15 @@ if __name__ == '__main__':
                 perm.Generate(world_window, shape, symmetry)
                 if not perm.IsValid():
                     raise Exception('Invalid permutation!')
+                perm_file = 'levels/' + level_data['name'] + '_Perm%d.png' % j
+                perm.GenerateImageFile(perm_file)
                 permutation_data = {
-                    'map': perm.map
+                    'file': perm_file,
                     # TODO: We'll also need some hot-spot data here.  Calculate from symmetry transform?
                 }
                 level_data['permutation_list'].append(permutation_data)
-        # We may need to compress these files, and then deflate them client-side.
-        # Even so, will it take a long time to parse the data?  Alternatively,
-        # we might break a level into a small JSON file accompanied by several
-        # image files that are not really images, but permutations.  We could then
-        # use a special fragment shader to sample from the source image as a function
-        # of the permutation, which we also sample from.
-        file = 'levels/' + level_data['name'] + '.json'
-        with open(file, 'w') as handle:
+        level_file = 'levels/' + level_data['name'] + '.json'
+        with open(level_file, 'w') as handle:
             level_data_text = json.dumps(level_data)
             handle.write(level_data_text)
 
