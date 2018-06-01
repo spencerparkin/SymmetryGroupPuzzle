@@ -403,5 +403,9 @@ if __name__ == '__main__':
         with open(level_file, 'w') as handle:
             level_data_text = json.dumps(level_data)
             handle.write(level_data_text)
+        
+        # TODO: On the client side, the current permutation will be an Image object,
+        #       and applying a permutation will mean combining two off-screen images into one.
+        #       Can we do this fast enough?  Maybe that's what we'll need camanJS for?
 
     print('Script complete!')
