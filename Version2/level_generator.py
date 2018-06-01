@@ -186,8 +186,8 @@ class ImagePermutation(object):
 
     def Generate(self, world_window, shape, symmetry):
         
-        # Build up a list of jumps made from the image to itself.
-        queue = []
+        print('Building trial map...')
+        trial_map = [[[] for i in range(self.height)] for j in range(self.width)]
         image_window = Window(complex(0.0, 0.0), complex(float(self.width - 1), float(self.height - 1)))
         for i in range(self.width):
             for j in range(self.height):
@@ -195,82 +195,67 @@ class ImagePermutation(object):
                 source_world_point = world_window.Map(source_image_point, image_window)
                 if shape.ContainsPoint(source_world_point):
                     target_world_point = symmetry.Transform(source_world_point)
-                    target_image_point = image_window.Map(target_world_point, world_window)
                     if not shape.ContainsPoint(target_world_point):
                         raise Exception('Invalid symmetry detected!')
+                    target_image_point = image_window.Map(target_world_point, world_window)
                 else:
                     target_image_point = source_image_point
                 jump = {
                     'source_image_point': source_image_point,
                     'target_image_point': target_image_point
                 }
-                queue.append(jump)
-        
-        # Ultimately, we must assign exactly one jump to each point in the image.
-        assignment_map = [[None for i in range(self.height)] for j in range(self.width)]
-        assignment_list = []
+                coords = (int(round(target_image_point.real)), int(round(target_image_point.imag)))
+                jump_list = trial_map[coords[0]][coords[1]]
+                jump_list.append(jump)
+
+        print('Analyzing trial map...')
+        empty_slots_list = []
+        overcrowded_slots_list = []
         for i in range(self.width):
             for j in range(self.height):
-                image_point = complex(float(i), float(j))
-                assignment = {
-                    'image_point': image_point,
-                    'assigned_jump': None
-                }
-                assignment_list.append(assignment)
-                assignment_map[int(image_point.real)][int(image_point.imag)] = assignment
+                jump_list = trial_map[i][j]
+                if len(jump_list) == 0:
+                    empty_slots_list.append((i, j))
+                elif len(jump_list) > 1:
+                    overcrowded_slots_list.append((i, j))
+        print('Found %d empty slots.' % len(empty_slots_list))
+        print('Found %d over-crowded slots.' % len(overcrowded_slots_list))
         
-        # Process the queue.  Fit the jumps to the best possible image points.
-        while len(queue) > 0:
-            if len(queue) % 1000 == 0:
-                print('Queue size = %d' % len(queue))
-            jump = queue.pop()
-            narrowed_assignment_list = []
-            target_image_point = jump['target_image_point']
-            source_image_point = jump['source_image_point']
-            center_x = int(round(target_image_point.real))
-            center_y = int(round(target_image_point.imag))
-            start = -4
-            stop = 5
-            if source_image_point == target_image_point:
-                start = 0
-                stop = 1
-            for i in range(start, stop):
-                x = center_x + i
-                if 0 <= x < self.width:
-                    for j in range(start, stop):
-                        y = center_y + j
-                        if 0 <= y < self.height:
-                            narrowed_assignment_list.append(assignment_map[x][y])
-            while True:
-                narrowed_assignment_list.sort(key=lambda assignment: SquareDistance(assignment['image_point'], jump['target_image_point']))
-                for assignment in narrowed_assignment_list:
-                    assigned_jump = assignment['assigned_jump']
-                    if assigned_jump is None:
-                        assignment['assigned_jump'] = jump
-                        break
-                    else:
-                        square_distance_a = SquareDistance(assignment['image_point'], jump['target_image_point'])
-                        square_distance_b = SquareDistance(assignment['image_point'], assigned_jump['target_image_point'])
-                        if square_distance_a < square_distance_b:
-                            queue.append(assigned_jump)
-                            assignment['assigned_jump'] = jump
-                            break
-                else:
-                    if narrowed_assignment_list == assignment_list:
-                        raise Exception('Failed to process jump!')
-                    narrowed_assignment_list = assignment_list
-                    print('Doing slow iteration!!!')
-                    continue
-                break
-        
-        # Finally, build the bijective mapping.
+        # I'm not sure that this is the best way to resolve the map.
+        # What this boils down to is how to map N points to N other points where the point pairs
+        # of the mapping form line-segments of the smallest possible total length.
+        print('Resolving trial map...')
+        for overcrowded_slot in overcrowded_slots_list:
+            image_point = complex(float(overcrowded_slot[0]), float(overcrowded_slot[1]))
+            jump_list = trial_map[overcrowded_slot[0]][overcrowded_slot[1]]
+            while len(jump_list) > 1:
+                largest_square_distance = 0.0
+                j = -1
+                for i, jump in enumerate(jump_list):
+                    square_distance = SquareDistance(jump['target_image_point'], image_point)
+                    if square_distance > largest_square_distance:
+                        j = i
+                relocate_jump = jump_list[j]
+                del jump_list[j]
+                smallest_square_distance = None
+                j = -1
+                for i, empty_slot in enumerate(empty_slots_list):
+                    image_point = complex(float(empty_slot[0]), float(empty_slot[1]))
+                    square_distance = SquareDistance(jump['target_image_point'], image_point)
+                    if smallest_square_distance is None or square_distance < smallest_square_distance:
+                        smallest_square_distance = square_distance
+                        j = i
+                empty_slot = empty_slots_list[j]
+                trial_map[empty_slot[0]][empty_slot[1]].append(relocate_jump)
+                del empty_slots_list[j]
+                
+        print('Building final map...')
         self.map = [[None for i in range(self.height)] for j in range(self.width)]
-        for assignment in assignment_list:
-            source_image_point = assignment['assigned_jump']['source_image_point']
-            target_image_point = assignment['image_point']
-            in_coords = (int(source_image_point.real), int(source_image_point.imag))
-            out_coords = (int(target_image_point.real), int(target_image_point.imag))
-            self.map[in_coords[0]][in_coords[1]] = out_coords
+        for i in range(self.width):
+            for j in range(self.height):
+                jump = trial_map[i][j][0]
+                coords = (int(jump['source_image_point'].real), int(jump['source_image_point'].imag))
+                self.map[coords[0]][coords[1]] = (i, j)
 
     def IsValid(self):
         # This is just a sanity check.
