@@ -84,9 +84,6 @@ class Shape(object):
         self.symmetry_list.append(AffineTransform().MakeRotation(-2.0 * math.pi / float(sides)))
         return self
 
-    # TODO: There are other interesting kinds of shapes we can make.
-    #       They can be of all sorts of topologies.
-
 class Window(object):
     def __init__(self, min_point, max_point):
         self.min_point = min_point
@@ -226,7 +223,9 @@ class ImagePermutation(object):
         
         # I'm not sure that this is the best way to resolve the map.
         # What this boils down to is how to map N points to N other points where the point pairs
-        # of the mapping form line-segments of the smallest possible total length.
+        # of the mapping form line-segments of the smallest possible total length.  The brute-force
+        # attach would require examining N! different mappings, which isn't practical at all.
+        # This is a very interesting optimization problem worth further study.
         print('Resolving trial map...')
         for overcrowded_slot in overcrowded_slots_list:
             image_point = complex(float(overcrowded_slot[0]), float(overcrowded_slot[1]))
@@ -373,6 +372,12 @@ if __name__ == '__main__':
                     # TODO: We'll also need some hot-spot data here.  Calculate from symmetry transform?
                 }
                 level_data['permutation_list'].append(permutation_data)
+        # We may need to compress these files, and then deflate them client-side.
+        # Even so, will it take a long time to parse the data?  Alternatively,
+        # we might break a level into a small JSON file accompanied by several
+        # image files that are not really images, but permutations.  We could then
+        # use a special fragment shader to sample from the source image as a function
+        # of the permutation, which we also sample from.
         file = 'levels/' + level_data['name'] + '.json'
         with open(file, 'w') as handle:
             level_data_text = json.dumps(level_data)
