@@ -1,0 +1,16 @@
+// VertShader.txt
+
+attribute vec2 vertex;
+
+varying vec2 frag_texCoord;
+
+void main()
+{
+    frag_texCoord.s = (vertex.x + 1.0) / 2.0;
+    frag_texCoord.t = (vertex.y + 1.0) / 2.0;
+
+    gl_Position.x = vertex.x;
+    gl_Position.y = vertex.y;
+    gl_Position.z = 0.0;
+    gl_Position.w = 1.0;
+}

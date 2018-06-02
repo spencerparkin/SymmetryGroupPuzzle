@@ -1,0 +1,13 @@
+// FragShader.txt
+
+precision mediump float;
+
+varying vec2 frag_texCoord;
+
+uniform sampler2D mainTexSampler;
+//uniform usampler2D permTexSampler;
+
+void main()
+{
+    gl_FragColor = texture2D(mainTexSampler, vec2(frag_texCoord.s, frag_texCoord.y));
+}
