@@ -308,7 +308,7 @@ class LevelBase(object):
     def MakeShapes(self):
         raise Exception('Pure virtual call.')
 
-class Level1(LevelBase):
+class Level0(LevelBase):
     def __init__(self):
         super().__init__()
 
@@ -335,7 +335,7 @@ class Level1(LevelBase):
 
         return shape_list
 
-class Level2(LevelBase):
+class Level1(LevelBase):
     def __init__(self):
         super().__init__()
 
@@ -367,6 +367,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--width', help='Specify image width in pixels.  Default is 512.', type=str)
     parser.add_argument('--height', help='Specify image height in pixels.  Default is 512.', type=str)
+    parser.add_argument('--level', help='Specify level to process.  Default is to do all of them.', type=str)
 
     args = parser.parse_args()
 
@@ -375,6 +376,8 @@ if __name__ == '__main__':
 
     for level_class in LevelBase.__subclasses__():
         level = level_class()
+        if args.level is not None and level_class.__name__ != args.level:
+            continue
         level_data = {
             'name': level_class.__name__,
             'image_width': image_width,
@@ -401,7 +404,7 @@ if __name__ == '__main__':
                 level_data['permutation_list'].append(permutation_data)
         level_file = 'levels/' + level_data['name'] + '.json'
         with open(level_file, 'w') as handle:
-            level_data_text = json.dumps(level_data)
+            level_data_text = json.dumps(level_data, sort_keys=True, indent=4, separators=(',', ': '))
             handle.write(level_data_text)
         
         # TODO: On the client side, the current permutation will be an Image object,
