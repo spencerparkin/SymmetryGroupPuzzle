@@ -2,12 +2,12 @@
 
 attribute vec2 vertex;
 
-varying vec2 frag_texCoord;
+varying vec2 frag_texCoords;
 
 void main()
 {
-    frag_texCoord.s = (vertex.x + 1.0) / 2.0;
-    frag_texCoord.t = (vertex.y + 1.0) / 2.0;
+    frag_texCoords.s = (vertex.x + 1.0) / 2.0;
+    frag_texCoords.t = (vertex.y + 1.0) / 2.0;
 
     gl_Position.x = vertex.x;
     gl_Position.y = vertex.y;

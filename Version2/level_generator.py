@@ -272,16 +272,22 @@ class ImagePermutation(object):
                     return False
         return True
 
-    def GenerateImageFile(self, file):
+    def GenerateImageFile(self, file, debug=False):
         
         print('Generating image data for permutation...')
         image_data = []
-        for i in range(self.width):
-            for j in range(self.height):
-                coords = self.map[i][j]
-                r, g = self.EncodeNumber(coords[0])
-                b, a = self.EncodeNumber(coords[1])
-                color = (r, g, b, a)
+        for j in range(self.height):
+            for i in range(self.width):
+                coords = self.map[i][self.height - 1 - j]
+                if debug:
+                    if self.map[i][self.height - 1 - j] == (i, self.height - 1 - j):
+                        color = (255, 0, 0, 255)
+                    else:
+                        color = (0, 255, 0, 255)
+                else:
+                    r, g = self.EncodeNumber(coords[0])
+                    b, a = self.EncodeNumber(coords[1])
+                    color = (r, g, b, a)
                 image_data.append(color)
 
         print('Writing permutation image file: %s...' % file)
@@ -319,16 +325,16 @@ class Level0(LevelBase):
         shape_list = []
 
         transform = AffineTransform()
-        transform.MakeScale(4.0)
-        transform.Concatinate(AffineTransform().MakeTranslation(complex(-2.5, 0.0)))
+        transform.MakeScale(6.0)
+        transform.Concatinate(AffineTransform().MakeTranslation(complex(-3.0, 0.0)))
         shape = Shape().MakeRegularPolygon(1.0, 3)
         shape.Transform(transform)
         shape_list.append(shape)
 
         transform = AffineTransform()
-        transform.MakeScale(4.0)
+        transform.MakeScale(6.0)
         transform.Concatinate(AffineTransform().MakeRotation(math.pi / 3.0))
-        transform.Concatinate(AffineTransform().MakeTranslation(complex(2.5, 0.0)))
+        transform.Concatinate(AffineTransform().MakeTranslation(complex(3.0, 0.0)))
         shape = Shape().MakeRegularPolygon(1.0, 3)
         shape.Transform(transform)
         shape_list.append(shape)
@@ -395,7 +401,7 @@ if __name__ == '__main__':
                 perm.Generate(world_window, shape, symmetry)
                 if not perm.IsValid():
                     raise Exception('Invalid permutation!')
-                perm_file = 'levels/' + level_data['name'] + '_Perm%d.png' % j
+                perm_file = 'levels/' + level_data['name'] + '_Shape%d_Perm%d.png' % (i, j)
                 perm.GenerateImageFile(perm_file)
                 permutation_data = {
                     'file': perm_file,

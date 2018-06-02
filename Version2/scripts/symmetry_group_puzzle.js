@@ -11,7 +11,7 @@ var vertex_buffer = null;
 var OnDocumentReady = () => {
 	try {
 	    let canvas = $('#canvas')[0];
-	    gl = canvas.getContext('webgl');
+	    gl = canvas.getContext('webgl2');
 	    if(!gl) {
 	        throw 'WebGL is not available.';
 	    }
@@ -52,8 +52,12 @@ var PromiseLevel = (level) => new Promise((resolve, reject) => {
                 canvas.style.width = width + 'px';
                 canvas.style.height = height + 'px';
 
-                current_perm = new Image(width, height);
+                //current_perm = new Image(width, height);
                 // TODO: Scramble current permutation.
+                // HACK: Point to one of the permutations for now.
+                current_perm = perm_list[0]['image'];
+
+                RefreshPermTexture();
 
                 resolve();
             });
@@ -138,10 +142,21 @@ var RenderLevel = () => {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, main_texture);
 
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, perm_texture);
+
     gl.useProgram(shader_program);
 
     let mainTexSamplerLoc = gl.getUniformLocation(shader_program, 'mainTexSampler');
     gl.uniform1i(mainTexSamplerLoc, 0);
+
+    let permTexSamplerLoc = gl.getUniformLocation(shader_program, 'permTexSampler');
+    gl.uniform1i(permTexSamplerLoc, 1);
+
+    let imageWidthLoc = gl.getUniformLocation(shader_program, 'imageWidth');
+    let imageHeightLoc = gl.getUniformLocation(shader_program, 'imageHeight');
+    gl.uniform1f(imageWidthLoc, current_perm.width);
+    gl.uniform1f(imageHeightLoc, current_perm.height);
 
     if(vertex_buffer === null) {
         vertex_buffer = gl.createBuffer();
@@ -168,6 +183,21 @@ var RenderLevel = () => {
     }
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+var RefreshPermTexture = () => {
+    if(perm_texture === null) {
+        perm_texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, perm_texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    } else {
+        gl.bindTexture(gl.TEXTURE_2D, perm_texture);
+    }
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, current_perm);
 }
 
 var OnCanvasClicked = event => {
