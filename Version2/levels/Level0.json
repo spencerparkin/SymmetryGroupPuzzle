@@ -1,0 +1,37 @@
+{
+    "image_height": 512,
+    "image_width": 512,
+    "name": "Level0",
+    "permutation_list": [
+        {
+            "file": "levels/Level0_Perm0.png"
+        },
+        {
+            "file": "levels/Level0_Perm1.png"
+        },
+        {
+            "file": "levels/Level0_Perm2.png"
+        },
+        {
+            "file": "levels/Level0_Perm3.png"
+        },
+        {
+            "file": "levels/Level0_Perm4.png"
+        },
+        {
+            "file": "levels/Level0_Perm0.png"
+        },
+        {
+            "file": "levels/Level0_Perm1.png"
+        },
+        {
+            "file": "levels/Level0_Perm2.png"
+        },
+        {
+            "file": "levels/Level0_Perm3.png"
+        },
+        {
+            "file": "levels/Level0_Perm4.png"
+        }
+    ]
+}
