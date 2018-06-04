@@ -2,7 +2,7 @@
 
 var gl = null;
 var perm_list = null;
-var current_perm = null;
+var current_perm_data = null;
 var main_texture = null;
 var perm_texture = null;
 var shader_program = null;
@@ -52,10 +52,15 @@ var PromiseLevel = (level) => new Promise((resolve, reject) => {
                 canvas.style.width = width + 'px';
                 canvas.style.height = height + 'px';
 
-                //current_perm = new Image(width, height);
-                // TODO: Scramble current permutation.
-                // HACK: Point to one of the permutations for now.
-                current_perm = perm_list[0]['image'];
+                //current_perm_data = new ImageData(width, height);
+                // TODO: Create identity permutation, then scramble.
+                current_perm_data = perm_list[0]['image_data'];
+
+                /*Promise.all([
+                    PromisePermTexture()
+                ]).then(() => {
+                    resolve();
+                });*/
 
                 RefreshPermTexture();
 
@@ -70,11 +75,60 @@ var PromiseLevel = (level) => new Promise((resolve, reject) => {
 
 var PromisePermutation = (perm_info) => new Promise((resolve, reject) => {
     let perm_image = new Image();
-    perm_info['image'] = perm_image;
-    perm_image.onload = () => { resolve(perm_info); }
+    perm_image.onload = () => {
+        let canvas = document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        canvas.width = perm_image.width;
+        canvas.height = perm_image.height;
+        context.drawImage(perm_image, 0, 0);
+        let perm_image_data = context.getImageData(0, 0, perm_image.width, perm_image.height);
+        perm_info['image_data'] = perm_image_data;
+        perm_info['image'] = perm_image;
+        resolve(perm_info);
+    }
     perm_image.onerror = () => { reject(); }
     perm_image.src = perm_info['file'];
 });
+
+/* This probably works, but the conversion from Image to ImageData, I believe is failing, not ImageData to Image.
+var PromisePermTexture = () => new Promise((resolve, reject) => {
+    let canvas = document.createElement('canvas');
+    let context = canvas.getContext('2d');
+    canvas.width = current_perm_data.width;
+    canvas.height = current_perm_data.height;
+    context.putImageData(current_perm_data, 0, 0);
+    let current_perm = document.createElement('img');
+    current_perm.onload = () => {
+        if(perm_texture === null) {
+            perm_texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, perm_texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, perm_texture);
+        }
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, current_perm);
+        resolve();
+    }
+    let url = canvas.toDataURL('image/png');
+    current_perm.src = url;
+});*/
+
+var RefreshPermTexture = () => {
+    if(perm_texture === null) {
+        perm_texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, perm_texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    } else {
+        gl.bindTexture(gl.TEXTURE_2D, perm_texture);
+    }
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, current_perm_data);
+}
 
 var PromiseMainTexture = (i) => new Promise((resolve, reject) => {
     let image = new Image();
@@ -155,8 +209,8 @@ var RenderLevel = () => {
 
     let imageWidthLoc = gl.getUniformLocation(shader_program, 'imageWidth');
     let imageHeightLoc = gl.getUniformLocation(shader_program, 'imageHeight');
-    gl.uniform1f(imageWidthLoc, current_perm.width);
-    gl.uniform1f(imageHeightLoc, current_perm.height);
+    gl.uniform1f(imageWidthLoc, current_perm_data.width);
+    gl.uniform1f(imageHeightLoc, current_perm_data.height);
 
     if(vertex_buffer === null) {
         vertex_buffer = gl.createBuffer();
@@ -183,21 +237,6 @@ var RenderLevel = () => {
     }
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
-}
-
-var RefreshPermTexture = () => {
-    if(perm_texture === null) {
-        perm_texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, perm_texture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    } else {
-        gl.bindTexture(gl.TEXTURE_2D, perm_texture);
-    }
-
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, current_perm);
 }
 
 var OnCanvasClicked = event => {
