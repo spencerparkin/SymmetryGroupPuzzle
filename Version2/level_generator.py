@@ -272,29 +272,20 @@ class ImagePermutation(object):
                     return False
         return True
 
-    def GenerateImageFile(self, file, debug=False):
-        
-        print('Generating image data for permutation...')
-        image_data = []
+    def GeneratePermFile(self, file):
+        print('Writing permutation file: %s...' % file)
+        perm_data = bytearray()
         for j in range(self.height):
             for i in range(self.width):
                 coords = self.map[i][self.height - 1 - j]
-                if debug:
-                    if self.map[i][self.height - 1 - j] == (i, self.height - 1 - j):
-                        color = (255, 0, 0, 255)
-                    else:
-                        color = (0, 255, 0, 255)
-                else:
-                    r, g = self.EncodeNumber(coords[0])
-                    b, a = self.EncodeNumber(coords[1])
-                    color = (r, g, b, a)
-                image_data.append(color)
-
-        print('Writing permutation image file: %s...' % file)
-        from PIL import Image
-        image = Image.new('RGBA', (self.width, self.height))
-        image.putdata(image_data)
-        image.save(file)
+                r, g = self.EncodeNumber(coords[0])
+                b, a = self.EncodeNumber(coords[1])
+                color = (r, g, b, a)
+                for k in range(4):
+                    perm_data.append(color[k])
+        # TODO: These really need to be compressed here and then decompressed on the client.  Use GZip or ZLib?
+        with open(file, 'wb') as handle:
+            handle.write(perm_data)
     
     def EncodeNumber(self, number):
         lower_part = number % 256
@@ -386,9 +377,9 @@ if __name__ == '__main__':
             continue
         level_data = {
             'name': level_class.__name__,
-            'image_width': image_width,
-            'image_height': image_height,
-            'permutation_list': []
+            'perm_width': image_width,
+            'perm_height': image_height,
+            'perm_list': []
         }
         print('Processing %s...' % level_data['name'])
         world_window = level.MakeWindow()
@@ -401,13 +392,13 @@ if __name__ == '__main__':
                 perm.Generate(world_window, shape, symmetry)
                 if not perm.IsValid():
                     raise Exception('Invalid permutation!')
-                perm_file = 'levels/' + level_data['name'] + '_Shape%d_Perm%d.png' % (i, j)
-                perm.GenerateImageFile(perm_file)
+                perm_file = 'levels/' + level_data['name'] + '_Shape%d_Perm%d.perm' % (i, j)
+                perm.GeneratePermFile(perm_file)
                 permutation_data = {
                     'file': perm_file,
                     # TODO: We'll also need some hot-spot data here.  Calculate from symmetry transform?
                 }
-                level_data['permutation_list'].append(permutation_data)
+                level_data['perm_list'].append(permutation_data)
         level_file = 'levels/' + level_data['name'] + '.json'
         with open(level_file, 'w') as handle:
             level_data_text = json.dumps(level_data, sort_keys=True, indent=4, separators=(',', ': '))

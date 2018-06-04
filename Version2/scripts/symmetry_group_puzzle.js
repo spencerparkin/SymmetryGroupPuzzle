@@ -3,6 +3,8 @@
 var gl = null;
 var perm_list = null;
 var current_perm_data = null;
+var perm_width = 0;
+var perm_height = 0;
 var main_texture = null;
 var perm_texture = null;
 var shader_program = null;
@@ -33,7 +35,7 @@ var PromiseLevel = (level) => new Promise((resolve, reject) => {
         dataType: 'json',
         success: level_data => {
             perm_promise_list = [];
-            $.each(level_data['permutation_list'], (i, perm_info) => {
+            $.each(level_data['perm_list'], (i, perm_info) => {
                 perm_promise_list.push(PromisePermutation(perm_info));
             });
             Promise.all(perm_promise_list).then((results) => {
@@ -43,26 +45,14 @@ var PromiseLevel = (level) => new Promise((resolve, reject) => {
 
                 $('#header').text('Symmetry Group Puzzle: ' + level_data['name']);
 
-                let width = level_data['image_width'];
-                let height = level_data['image_height'];
+                perm_width = level_data['perm_width'];
+                perm_height = level_data['perm_height'];
 
-                let canvas = $('#canvas')[0];
-                canvas.width = width;
-                canvas.height = height;
-                canvas.style.width = width + 'px';
-                canvas.style.height = height + 'px';
-
-                //current_perm_data = new ImageData(width, height);
+                //current_perm_data = new Uint8Array();
                 // TODO: Create identity permutation, then scramble.
-                current_perm_data = perm_list[0]['image_data'];
+                current_perm_data = perm_list[0]['perm_data'];
 
-                /*Promise.all([
-                    PromisePermTexture()
-                ]).then(() => {
-                    resolve();
-                });*/
-
-                RefreshPermTexture();
+                RegeneratePermTexture();
 
                 resolve();
             });
@@ -74,49 +64,23 @@ var PromiseLevel = (level) => new Promise((resolve, reject) => {
 });
 
 var PromisePermutation = (perm_info) => new Promise((resolve, reject) => {
-    let perm_image = new Image();
-    perm_image.onload = () => {
-        let canvas = document.createElement('canvas');
-        let context = canvas.getContext('2d');
-        canvas.width = perm_image.width;
-        canvas.height = perm_image.height;
-        context.drawImage(perm_image, 0, 0);
-        let perm_image_data = context.getImageData(0, 0, perm_image.width, perm_image.height);
-        perm_info['image_data'] = perm_image_data;
-        perm_info['image'] = perm_image;
+    let request = new XMLHttpRequest();
+    request.open('GET', perm_info['file'], true);
+    request.responseType = 'arraybuffer';
+    request.onload = event => {
+        // TODO: We need to be able to decompress compressed versions of this data.  GZip or ZLib?
+        let perm_data = request.response;
+        perm_data = new Uint8Array(perm_data);
+        perm_info['perm_data'] = perm_data;
         resolve(perm_info);
     }
-    perm_image.onerror = () => { reject(); }
-    perm_image.src = perm_info['file'];
+    request.onerror = error => {
+        reject();
+    }
+    request.send(null);
 });
 
-/* This probably works, but the conversion from Image to ImageData, I believe is failing, not ImageData to Image.
-var PromisePermTexture = () => new Promise((resolve, reject) => {
-    let canvas = document.createElement('canvas');
-    let context = canvas.getContext('2d');
-    canvas.width = current_perm_data.width;
-    canvas.height = current_perm_data.height;
-    context.putImageData(current_perm_data, 0, 0);
-    let current_perm = document.createElement('img');
-    current_perm.onload = () => {
-        if(perm_texture === null) {
-            perm_texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, perm_texture);
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        } else {
-            gl.bindTexture(gl.TEXTURE_2D, perm_texture);
-        }
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, current_perm);
-        resolve();
-    }
-    let url = canvas.toDataURL('image/png');
-    current_perm.src = url;
-});*/
-
-var RefreshPermTexture = () => {
+var RegeneratePermTexture = () => {
     if(perm_texture === null) {
         perm_texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, perm_texture);
@@ -127,7 +91,7 @@ var RefreshPermTexture = () => {
     } else {
         gl.bindTexture(gl.TEXTURE_2D, perm_texture);
     }
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, current_perm_data);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, perm_width, perm_height, 0, gl.RGBA, gl.UNSIGNED_BYTE, current_perm_data);
 }
 
 var PromiseMainTexture = (i) => new Promise((resolve, reject) => {
@@ -137,12 +101,20 @@ var PromiseMainTexture = (i) => new Promise((resolve, reject) => {
             gl.deleteTexture(main_texture);
         }
         main_texture = gl.createTexture();
+
         gl.bindTexture(gl.TEXTURE_2D, main_texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        let canvas = $('#canvas')[0];
+        canvas.width = image.width;
+        canvas.height = image.height;
+        canvas.style.width = image.width + 'px';
+        canvas.style.height = image.height + 'px';
+
         resolve();
     }
     image.src = 'images/Image' + i.toString() + '.png';
@@ -207,10 +179,10 @@ var RenderLevel = () => {
     let permTexSamplerLoc = gl.getUniformLocation(shader_program, 'permTexSampler');
     gl.uniform1i(permTexSamplerLoc, 1);
 
-    let imageWidthLoc = gl.getUniformLocation(shader_program, 'imageWidth');
-    let imageHeightLoc = gl.getUniformLocation(shader_program, 'imageHeight');
-    gl.uniform1f(imageWidthLoc, current_perm_data.width);
-    gl.uniform1f(imageHeightLoc, current_perm_data.height);
+    let permWidthLoc = gl.getUniformLocation(shader_program, 'permWidth');
+    let permHeightLoc = gl.getUniformLocation(shader_program, 'permHeight');
+    gl.uniform1f(permWidthLoc, perm_width);
+    gl.uniform1f(permHeightLoc, perm_height);
 
     if(vertex_buffer === null) {
         vertex_buffer = gl.createBuffer();
