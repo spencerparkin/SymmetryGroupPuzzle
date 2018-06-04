@@ -5,6 +5,7 @@ var perm_list = null;
 var current_perm_data = null;
 var perm_width = 0;
 var perm_height = 0;
+var perm_history = [];
 var main_texture = null;
 var perm_texture = null;
 var shader_program = null;
@@ -29,7 +30,55 @@ var OnDocumentReady = () => {
 	}
 }
 
-var PromiseLevel = (level) => new Promise((resolve, reject) => {
+var Encode = number => {
+    let lower_part = number % 256;
+    let upper_part = Math.floor(number / 256);
+    return [lower_part, upper_part];
+}
+
+var Decode = (lower_part, upper_part) => {
+    return lower_part + 256 * upper_part;
+}
+
+var MakeIdentityPerm = () => {
+    let perm_data = new Uint8Array(perm_width * perm_height * 4);
+    for(let row = 0; row < perm_height; row++) {
+        for(let col = 0; col < perm_width; col++) {
+            let row_encoded = Encode(row);
+            let col_encoded = Encode(col);
+            let k = row * perm_width * 4 + col * 4;
+            perm_data[k + 0] = row_encoded[0];
+            perm_data[k + 1] = row_encoded[1];
+            perm_data[k + 2] = col_encoded[0];
+            perm_data[k + 3] = col_encoded[1];
+        }
+    }
+    return perm_data;
+}
+
+var ConcatinatePerm = (k) => {
+    let concat_perm_data = perm_list[k]['perm_data'];
+    let new_perm_data = new Uint8Array(perm_width * perm_height * 4);
+    for(let row = 0; row < perm_height; row++) {
+        for(let col = 0; col < perm_width; col++) {
+            let i = row * perm_width * 4 + col * 4;
+            let other_row = Decode(concat_perm_data[i + 0], concat_perm_data[i + 1]);
+            let other_col = Decode(concat_perm_data[i + 2], concat_perm_data[i + 3]);
+            let j = other_row * perm_width * 4 + other_col * 4;
+            other_row = Decode(current_perm_data[j + 0], current_perm_data[j + 1]);
+            other_col = Decode(current_perm_data[j + 2], current_perm_data[j + 3]);
+            let row_encoded = Encode(other_row);
+            let col_encoded = Encode(other_col);
+            new_perm_data[i + 0] = row_encoded[0];
+            new_perm_data[i + 1] = row_encoded[1];
+            new_perm_data[i + 2] = col_encoded[0];
+            new_perm_data[i + 3] = col_encoded[1];
+        }
+    }
+    current_perm_data = new_perm_data;
+}
+
+var PromiseLevel = level => new Promise((resolve, reject) => {
     $.ajax({
         url: 'levels/level' + level + '.json',
         dataType: 'json',
@@ -48,9 +97,14 @@ var PromiseLevel = (level) => new Promise((resolve, reject) => {
                 perm_width = level_data['perm_width'];
                 perm_height = level_data['perm_height'];
 
-                //current_perm_data = new Uint8Array();
-                // TODO: Create identity permutation, then scramble.
-                current_perm_data = perm_list[0]['perm_data'];
+                perm_history = [];
+
+                current_perm_data = MakeIdentityPerm();
+                for(let i = 0; i < 20; i++) {
+                    let k = perm_list.length;
+                    let j = Math.floor(Math.random() * k);
+                    ConcatinatePerm(j);
+                }
 
                 RegeneratePermTexture();
 

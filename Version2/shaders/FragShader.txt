@@ -20,6 +20,6 @@ float DecodeVector(in vec2 vector)
 void main()
 {
     vec4 perm_data = texture2D(permTexSampler, frag_texCoords);
-    vec2 perm_texCoords = vec2(DecodeVector(perm_data.xy) / permWidth, DecodeVector(perm_data.zw) / permHeight);
+    vec2 perm_texCoords = vec2(DecodeVector(perm_data.zw) / permWidth, 1.0 - DecodeVector(perm_data.xy) / permHeight);
     gl_FragColor = texture2D(mainTexSampler, perm_texCoords);
 }

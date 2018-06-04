@@ -273,13 +273,15 @@ class ImagePermutation(object):
         return True
 
     def GeneratePermFile(self, file):
+        # The map was made with origin at lower-left with coords of the form (col, row).
+        # We now generate texture data with origin at upper-left and coords of the form (row, col).
         print('Writing permutation file: %s...' % file)
         perm_data = bytearray()
         for j in range(self.height):
             for i in range(self.width):
                 coords = self.map[i][self.height - 1 - j]
-                r, g = self.EncodeNumber(coords[0])
-                b, a = self.EncodeNumber(coords[1])
+                r, g = self.EncodeNumber(self.height - 1 - coords[1])
+                b, a = self.EncodeNumber(coords[0])
                 color = (r, g, b, a)
                 for k in range(4):
                     perm_data.append(color[k])
