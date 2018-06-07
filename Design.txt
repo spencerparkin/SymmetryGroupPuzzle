@@ -29,3 +29,6 @@ possibly be added to the graph.  Now pick out all empty cycles of the graph as p
 of an algorithm might converge rather quickly, even if many highly disjoint pairs of cut-shapes cut one another.
 We can't detect the convergence, but we can be reasonably assured of it if after several iterations, no more edges have
 been added to the graph.
+
+It would be nice to have the capture meshes draw in alpha as the mouse hovers over them.  It would also be nice
+to have full undo-redo in the program.

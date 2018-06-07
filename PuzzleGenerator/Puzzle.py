@@ -1,9 +1,13 @@
 # Puzzle.py
 
+import sys
 import random
 import json
 import math
 
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from PyQt5 import QtGui, QtCore, QtWidgets
 from math2d_region import Region, SubRegion
 from math2d_planar_graph import PlanarGraph
 from math2d_aa_rect import AxisAlignedRectangle
@@ -62,6 +66,9 @@ class Puzzle(object):
         for cut_region in self.cut_region_list:
             graph.Add(cut_region.region)
         
+        # For debugging purposes...
+        #DebugDraw(graph)
+        
         # Make sure that all cut-regions are tessellated.  This lets us do point tests against the regions.
         for cut_region in self.cut_region_list:
             cut_region.region.Tessellate()
@@ -71,6 +78,7 @@ class Puzzle(object):
         # that is completely impractical.  The idea here is that if after max_count iteration
         # we have not added any more edges to our graph, then we can be reasonably sure that
         # there are no more cuts to be made.
+        random.seed(0)
         max_count = 20
         count = 0
         while count < max_count:
@@ -106,35 +114,101 @@ class Puzzle(object):
                 count = 0
             else:
                 count += 1
+
+        # For debugging purposes...
+        #DebugDraw(graph)
         
         # The desired meshes are now simply all of the empty cycles of the graph.
+        # TODO: We need to merge all connected components into one component.
         polygon_list = graph.GeneratePolygonCycles()
         for polygon in polygon_list:
             polygon.Tessellate()
         
+        # For debugging purposes...
+        #mesh_list = [polygon.mesh for polygon in polygon_list]
+        #DebugDraw(mesh_list)
+        
         # Finally, write out the level file along with its accompanying mesh files.
         # Note that I think we can calculate UVs as a function of the object-space coordinates in the shader.
-        puzzle_file = puzzle_folder + '/' + 'Puzzle_' + self.Name() + '.json'
-        with open(puzzle_file, 'w') as puzzle_handle:
-            mesh_list = []
-            for i, cut_region in enumerate(self.cut_region_list):
-                mesh_file = puzzle_folder + '/Puzzle_' + self.Name() + '_CaptureMesh%d.json' % i, 
-                mesh = cut_region.GenerateMesh()
-                with open(mesh_file, 'w') as mesh_handle:
-                    mesh_handle.write(json.dumps(mesh.Serialize()))
-                mesh_list.append({
-                    'file': mesh_file,
-                    'type': 'capture_mesh',
-                    'symmetry_list': [symmetry.Serialize() for symmetry in cut_region.symmetry_list]
-                })
-            for i, polygon in enumerate(polygon_list):
-                mesh_file = puzzle_folder + '/Puzzle_' + self.Name() + '_PictureMesh%d.json' % i,
-                with open(mesh_file, 'w') as mesh_handle:
-                    mesh_handle.write(json.dumps(polygon.mesh.Serialize()))
-                mesh_list.append({
-                    'file': mesh_file,
-                    'type': 'picture_mesh',
-                })
+        mesh_list = []
+        for i, cut_region in enumerate(self.cut_region_list):
+            mesh_file = 'Puzzle_' + self.Name() + '_CaptureMesh%d.json' % i
+            mesh = cut_region.region.GenerateMesh()
+            with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
+                mesh_handle.write(json.dumps(mesh.Serialize(), sort_keys=True, indent=4, separators=(',', ': ')))
+            mesh_list.append({
+                'file': mesh_file,
+                'type': 'capture_mesh',
+                'symmetry_list': [symmetry.Serialize() for symmetry in cut_region.symmetry_list]
+                # TODO: We need to add some hot-spot data here to aide in knowing which symmetry to use based on mouse location.
+            })
+        for i, polygon in enumerate(polygon_list):
+            mesh_file = 'Puzzle_' + self.Name() + '_PictureMesh%d.json' % i
+            with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
+                mesh_handle.write(json.dumps(polygon.mesh.Serialize(), sort_keys=True, indent=4, separators=(',', ': ')))
+            mesh_list.append({
+                'file': mesh_file,
+                'type': 'picture_mesh',
+            })
+        puzzle_file = 'Puzzle_' + self.Name() + '.json'
+        with open(puzzle_folder + '/' + puzzle_file, 'w') as puzzle_handle:
             puzzle_handle.write(json.dumps({
-                'mesh_list': mesh_list
-            }))
+                'mesh_list': mesh_list,
+                'window': rect.Serialize()
+            }, sort_keys=True, indent=4, separators=(',', ': ')))
+
+class DebugWindow(QtGui.QOpenGLWindow):
+    def __init__(self, parent=None, object=None):
+        super().__init__(parent)
+        self.object = object
+
+    def initializeGL(self):
+        glShadeModel(GL_FLAT)
+        glDisable(GL_DEPTH_TEST)
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+
+    def paintGL(self):
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        viewport = glGetIntegerv(GL_VIEWPORT)
+        width = viewport[2]
+        height = viewport[3]
+
+        aspect_ratio = float(width) / float(height)
+        extent = 6.0
+
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        if aspect_ratio > 0.0:
+            gluOrtho2D(-extent * aspect_ratio, extent * aspect_ratio, -extent, extent)
+        else:
+            gluOrtho2D(-extent, extent, -extent / aspect_ratio, extent / aspect_ratio)
+
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+        if self.object is not None:
+            if type(self.object) is list:
+                for sub_object in self.object:
+                    r = random.uniform(0.0, 1.0)
+                    g = random.uniform(0.0, 1.0)
+                    b = random.uniform(0.0, 1.0)
+                    glColor3f(r, g, b)
+                    sub_object.Render()
+            else:
+                self.object.Render()
+
+        glFlush()
+
+    def resizeGL(self, width, height):
+        glViewport(0, 0, width, height)
+
+def DebugDraw(object):
+    app = QtGui.QGuiApplication(sys.argv)
+    
+    win = DebugWindow(None, object)
+    win.resize(640, 480)
+    win.show()
+    
+    result = app.exec_()
+    return result
