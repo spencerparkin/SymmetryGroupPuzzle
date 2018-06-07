@@ -1,6 +1,9 @@
 # PuzzleGenerator.py
 
 import os
+import sys
+
+sys.path.append(r'C:\dev\pyMath2D')
 
 from Puzzle import Puzzle
 from Puzzle1 import Puzzle1
@@ -16,6 +19,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     puzzle_folder = args.puzzle_folder if args.puzzle_folder is not None else os.get_cwd()
+    os.makedirs(puzzle_folder, exist_ok=True)
     
     for puzzle_class in Puzzle.__subclasses__():
         puzzle = puzzle_class()

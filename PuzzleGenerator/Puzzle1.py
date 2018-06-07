@@ -20,10 +20,9 @@ class Puzzle1(Puzzle):
         cut_region = CutRegion()
         cut_region.GenerateRegularPolygon(3, 4.0)
         transform = AffineTransform()
-        transform.Rotation()
         transform.RigidBodyMotion(math.pi / 3.0, Vector(2.0, 0.0))
         cut_region.Transform(transform)
-        self.cut_shape_list.append(cut_region)
+        self.cut_region_list.append(cut_region)
     
     def Name(self):
         return 'Puzzle1'

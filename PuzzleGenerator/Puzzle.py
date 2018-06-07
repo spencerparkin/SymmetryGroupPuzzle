@@ -36,7 +36,7 @@ class CutRegion(object):
         self.symmetry_list.append(symmetry)
             
     def Transform(self, transform):
-        self.polygon = transform * self.polygon
+        self.region = transform * self.region
         inverse = transform.Inverted()
         for i, symmetry in enumerate(self.symmetry_list):
             self.symmetry_list[i] = transform * symmetry * inverse
@@ -53,18 +53,18 @@ class Puzzle(object):
         # Calculate a bounding rectangle for all the cut-regions.
         rect = AxisAlignedRectangle()
         for cut_region in self.cut_region_list:
-            rect.GrowFor(cut_region)
+            rect.GrowFor(cut_region.region)
         rect.Scale(1.1)
 
         # Now add the rectangle and the cut-regions to a planar graph.
         graph = PlanarGraph()
         graph.Add(rect)
         for cut_region in self.cut_region_list:
-            graph.Add(cut_region)
+            graph.Add(cut_region.region)
         
         # Make sure that all cut-regions are tessellated.  This lets us do point tests against the regions.
         for cut_region in self.cut_region_list:
-            cut_region.region.Tesselllate()
+            cut_region.region.Tessellate()
         
         # Now comes the process of cutting the puzzle.  The only sure algorithm I can think
         # of would use a stabilizer chain to enumerate all elements of the desired group, but
@@ -86,6 +86,10 @@ class Puzzle(object):
                     if region.ContainsPoint(point) and not region.ContainsPointOnBorder(point):
                         line_segment_list.append(edge_segment)
                         break
+            
+            # If no line segments were found, then the puzzle is wrong.
+            if len(line_segment_list) == 0:
+                raise Exception('Puzzle is wrong.  It has a cut-region that doesn\'t overlap anything else.')
             
             # Now let all copied edges undergo a random symmetry of the chosen region, then add them to the graph.
             edge_count_before = len(graph.edge_list)
