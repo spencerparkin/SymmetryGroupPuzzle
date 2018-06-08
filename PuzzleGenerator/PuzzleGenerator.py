@@ -8,6 +8,7 @@ sys.path.append(r'C:\pyMath2D')
 from Puzzle import Puzzle
 from Puzzle1 import Puzzle1
 from Puzzle2 import Puzzle2
+from Puzzle3 import Puzzle3
 
 import argparse
 

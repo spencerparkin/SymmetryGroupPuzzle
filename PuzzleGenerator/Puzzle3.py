@@ -10,26 +10,24 @@ class Puzzle3(Puzzle):
     def __init__(self):
         super().__init__()
 
-        radius = 6.0
-
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(4, radius)
+        cut_region.GenerateRegularPolygon(4, 3.0 * math.sqrt(2.0))
         transform = AffineTransform()
-        transform.Rotation(math.pi / 2.0)
+        transform.RigidBodyMotion(math.pi / 4.0, Vector(0.0, 0.0))
         cut_region.Transform(transform)
         self.cut_region_list.append(cut_region)
 
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(4, 2.0)
+        cut_region.GenerateRegularPolygon(4, math.sqrt(2.0))
         transform = AffineTransform()
-        transform.RigidBodyMotion(math.pi / 2.0, Vector(-2.0, -2.0))
+        transform.RigidBodyMotion(math.pi / 4.0, Vector(-1.5, -1.5))
         cut_region.Transform(transform)
         self.cut_region_list.append(cut_region)
 
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(4, 2.0)
+        cut_region.GenerateRegularPolygon(4, math.sqrt(2.0))
         transform = AffineTransform()
-        transform.RigidBodyMotion(math.pi / 2.0, Vector(radius / math.sqrt(2.0), radius / math.sqrt(2.0)))
+        transform.RigidBodyMotion(math.pi / 4.0, Vector(3.0, 3.0))
         cut_region.Transform(transform)
         self.cut_region_list.append(cut_region)
 

@@ -91,18 +91,15 @@ class Puzzle(object):
                     if region.ContainsPoint(point) and not region.ContainsPointOnBorder(point):
                         line_segment_list.append(edge_segment)
                         break
-            
-            # If no line segments were found, then the puzzle is wrong.
-            if len(line_segment_list) == 0:
-                raise Exception('Puzzle is wrong.  It has a cut-region that doesn\'t overlap anything else.')
-            
-            # Now let all copied edges undergo a random symmetry of the chosen region, then add them to the graph.
+
+            # Now let all copied edges, if any, undergo a random symmetry of the chosen region, then add them to the graph.
             edge_count_before = len(graph.edge_list)
-            i = random.randint(0, len(cut_region.symmetry_list) - 1)
-            symmetry = cut_region.symmetry_list[i]
-            for line_segment in line_segment_list:
-                line_segment = symmetry * line_segment
-                graph.Add(line_segment)
+            if len(line_segment_list) > 0:
+                i = random.randint(0, len(cut_region.symmetry_list) - 1)
+                symmetry = cut_region.symmetry_list[i]
+                for line_segment in line_segment_list:
+                    line_segment = symmetry * line_segment
+                    graph.Add(line_segment)
             edge_count_after = len(graph.edge_list)
             
             # Count how long we've gone without adding any new edges.
