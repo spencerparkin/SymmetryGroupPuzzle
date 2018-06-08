@@ -56,6 +56,7 @@ class Puzzle(object):
     def Generate(self, puzzle_folder):
         
         # Add the cut-regions to a planar graph.
+        print('Adding cut regions...')
         graph = PlanarGraph()
         for cut_region in self.cut_region_list:
             graph.Add(cut_region.region)
@@ -64,6 +65,7 @@ class Puzzle(object):
         #DebugDraw(graph)
         
         # Make sure that all cut-regions are tessellated.  This lets us do point tests against the regions.
+        print('Tessellating cut regions...')
         for cut_region in self.cut_region_list:
             cut_region.region.Tessellate()
         
@@ -72,6 +74,7 @@ class Puzzle(object):
         # that is completely impractical.  The idea here is that if after max_count iteration
         # we have not added any more edges to our graph, then we can be reasonably sure that
         # there are no more cuts to be made.
+        print('Generating cuts...')
         random.seed(0)
         max_count = 20
         count = 0
@@ -113,12 +116,14 @@ class Puzzle(object):
         #DebugDraw(graph)
 
         # Calculate a bounding rectangle for the graph, size it up a bit, then add it to the graph.
+        print('Adding border...')
         rect = AxisAlignedRectangle()
         rect.GrowFor(graph)
         rect.Scale(1.1)
         graph.Add(rect)
 
         # Before we can pull the empty cycles out of the graph, we need to merge all connected components into one.
+        print('Coalescing all connected components...')
         while True:
             sub_graph_list, dsf_set_list = graph.GenerateConnectedComponents()
             if len(sub_graph_list) == 1:
@@ -140,6 +145,7 @@ class Puzzle(object):
         #DebugDraw(graph)
 
         # The desired meshes are now simply all of the empty cycles of the graph.
+        print('Reading all empty cycles...')
         polygon_list = graph.GeneratePolygonCycles()
         for polygon in polygon_list:
             polygon.Tessellate()
@@ -150,6 +156,7 @@ class Puzzle(object):
         
         # Finally, write out the level file along with its accompanying mesh files.
         # Note that I think we can calculate UVs as a function of the object-space coordinates in the shader.
+        print('Writing level files...')
         mesh_list = []
         for i, cut_region in enumerate(self.cut_region_list):
             mesh_file = 'Puzzle_' + self.Name() + '_CaptureMesh%d.json' % i
