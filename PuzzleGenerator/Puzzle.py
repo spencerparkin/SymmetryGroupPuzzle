@@ -13,6 +13,7 @@ from math2d_planar_graph import PlanarGraph
 from math2d_aa_rect import AxisAlignedRectangle
 from math2d_vector import Vector
 from math2d_affine_transform import AffineTransform
+from math2d_line_segment import LineSegment
 
 class CutRegion(object):
     def __init__(self):
@@ -116,9 +117,29 @@ class Puzzle(object):
         rect.GrowFor(graph)
         rect.Scale(1.1)
         graph.Add(rect)
-        
+
+        # Before we can pull the empty cycles out of the graph, we need to merge all connected components into one.
+        while True:
+            sub_graph_list, dsf_set_list = graph.GenerateConnectedComponents()
+            if len(sub_graph_list) == 1:
+                break
+            smallest_distance = None
+            line_segment = None
+            for i in range(len(graph.vertex_list)):
+                dsf_set_a = dsf_set_list[i]
+                for j in range(i + 1, len(graph.vertex_list)):
+                    dsf_set_b = dsf_set_list[j]
+                    if dsf_set_a != dsf_set_b:
+                        distance = (graph.vertex_list[i] - graph.vertex_list[j]).Length()
+                        if smallest_distance is None or distance < smallest_distance:
+                            smallest_distance = distance
+                            line_segment = LineSegment(graph.vertex_list[i], graph.vertex_list[j])
+            graph.Add(line_segment)
+
+        # For debugging purposes...
+        #DebugDraw(graph)
+
         # The desired meshes are now simply all of the empty cycles of the graph.
-        # TODO: We need to merge all connected components into one component.  This is not just to account for the border.
         polygon_list = graph.GeneratePolygonCycles()
         for polygon in polygon_list:
             polygon.Tessellate()
