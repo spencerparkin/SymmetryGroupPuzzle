@@ -54,15 +54,8 @@ class Puzzle(object):
     
     def Generate(self, puzzle_folder):
         
-        # Calculate a bounding rectangle for all the cut-regions.
-        rect = AxisAlignedRectangle()
-        for cut_region in self.cut_region_list:
-            rect.GrowFor(cut_region.region)
-        rect.Scale(1.1)
-
-        # Now add the rectangle and the cut-regions to a planar graph.
+        # Add the cut-regions to a planar graph.
         graph = PlanarGraph()
-        graph.Add(rect)
         for cut_region in self.cut_region_list:
             graph.Add(cut_region.region)
         
@@ -117,9 +110,15 @@ class Puzzle(object):
 
         # For debugging purposes...
         #DebugDraw(graph)
+
+        # Calculate a bounding rectangle for the graph, size it up a bit, then add it to the graph.
+        rect = AxisAlignedRectangle()
+        rect.GrowFor(graph)
+        rect.Scale(1.1)
+        graph.Add(rect)
         
         # The desired meshes are now simply all of the empty cycles of the graph.
-        # TODO: We need to merge all connected components into one component.
+        # TODO: We need to merge all connected components into one component.  This is not just to account for the border.
         polygon_list = graph.GeneratePolygonCycles()
         for polygon in polygon_list:
             polygon.Tessellate()
