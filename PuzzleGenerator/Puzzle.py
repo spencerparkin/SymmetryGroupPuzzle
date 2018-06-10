@@ -13,6 +13,7 @@ from math2d_planar_graph import PlanarGraph
 from math2d_aa_rect import AxisAlignedRectangle
 from math2d_vector import Vector
 from math2d_affine_transform import AffineTransform
+from math2d_linear_transform import LinearTransform
 from math2d_line_segment import LineSegment
 
 class CutRegion(object):
@@ -39,7 +40,25 @@ class CutRegion(object):
         symmetry = AffineTransform()
         symmetry.linear_transform.Rotation(-2.0 * math.pi / float(sides))
         self.symmetry_list.append(symmetry)
-            
+
+    def GenerateRectangle(self, width, height):
+        sub_region = SubRegion()
+        sub_region.polygon.vertex_list.append(Vector(-width / 2.0, -height / 2.0))
+        sub_region.polygon.vertex_list.append(Vector(width / 2.0, -height / 2.0))
+        sub_region.polygon.vertex_list.append(Vector(width / 2.0, height / 2.0))
+        sub_region.polygon.vertex_list.append(Vector(-width / 2.0, height / 2.0))
+        self.region = Region()
+        self.region.sub_region_list.append(sub_region)
+        symmetry = AffineTransform()
+        symmetry.linear_transform.Reflection(Vector(1.0, 0.0))
+        self.symmetry_list.append(symmetry)
+        symmetry = AffineTransform()
+        symmetry.linear_transform.Reflection(Vector(0.0, 1.0))
+        self.symmetry_list.append(symmetry)
+        symmetry = AffineTransform()
+        symmetry.linear_transform.Rotation(math.pi)
+        self.symmetry_list.append(symmetry)
+
     def Transform(self, transform):
         self.region = transform * self.region
         inverse = transform.Inverted()
@@ -87,7 +106,7 @@ class Puzzle(object):
             line_segment_list = []
             for edge in graph.edge_list:
                 edge_segment = graph.EdgeSegment(edge)
-                for point in [edge_segment.point_a, edge_segment.point_b]:
+                for point in [edge_segment.point_a, edge_segment.point_b, edge_segment.Lerp(0.5)]:
                     if region.ContainsPoint(point) and not region.ContainsPointOnBorder(point):
                         line_segment_list.append(edge_segment)
                         break

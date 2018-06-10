@@ -1,4 +1,4 @@
-# Puzzle4.py
+# Puzzle5.py
 
 import math
 
@@ -7,7 +7,7 @@ from math2d_affine_transform import AffineTransform
 from math2d_vector import Vector
 from math2d_polygon import Polygon
 
-class Puzzle4(Puzzle):
+class Puzzle5(Puzzle):
     def __init__(self):
         super().__init__()
 
@@ -25,12 +25,13 @@ class Puzzle4(Puzzle):
         cut_region.region.sub_region_list[0].hole_list.append(hole)
         self.cut_region_list.append(cut_region)
 
+        # This is almost like puzzle 4, but with a subtle difference.
         cut_region = CutRegion()
         cut_region.GenerateRectangle(5.0, 1.0)
         transform = AffineTransform()
-        transform.translation = Vector(3.5 * math.cos(math.pi * 4.0 / 5.0), 0.0)
+        transform.translation = Vector(-3.0, 0.0)
         cut_region.Transform(transform)
         self.cut_region_list.append(cut_region)
 
     def Name(self):
-        return 'Puzzle4'
+        return 'Puzzle5'
