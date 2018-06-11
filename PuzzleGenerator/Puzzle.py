@@ -175,7 +175,7 @@ class Puzzle(object):
         print('Writing level files...')
         mesh_list = []
         for i, cut_region in enumerate(self.cut_region_list):
-            mesh_file = 'Puzzle_' + self.Name() + '_CaptureMesh%d.json' % i
+            mesh_file = self.Name() + '_CaptureMesh%d.json' % i
             mesh = cut_region.region.GenerateMesh()
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
                 mesh_handle.write(json.dumps(mesh.Serialize(), sort_keys=True, indent=4, separators=(',', ': ')))
@@ -186,14 +186,14 @@ class Puzzle(object):
                 # TODO: We need to add some hot-spot data here to aide in knowing which symmetry to use based on mouse location.
             })
         for i, polygon in enumerate(polygon_list):
-            mesh_file = 'Puzzle_' + self.Name() + '_PictureMesh%d.json' % i
+            mesh_file = self.Name() + '_PictureMesh%d.json' % i
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
                 mesh_handle.write(json.dumps(polygon.mesh.Serialize(), sort_keys=True, indent=4, separators=(',', ': ')))
             mesh_list.append({
                 'file': mesh_file,
                 'type': 'picture_mesh',
             })
-        puzzle_file = 'Puzzle_' + self.Name() + '.json'
+        puzzle_file = self.Name() + '.json'
         with open(puzzle_folder + '/' + puzzle_file, 'w') as puzzle_handle:
             puzzle_handle.write(json.dumps({
                 'mesh_list': mesh_list,

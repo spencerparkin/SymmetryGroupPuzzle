@@ -3,7 +3,7 @@
 import os
 import sys
 
-sys.path.append(r'C:\pyMath2D')
+sys.path.append(r'C:\dev\pyMath2D')
 
 from Puzzle import Puzzle
 from Puzzle1 import Puzzle1

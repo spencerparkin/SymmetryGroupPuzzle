@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Symmetry Group Puzzle</title>
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="Scripts/gl-matrix.js"></script>
+    <script src="Scripts/gl-helpers.js"></script>
+    <script src="SymmetryGroupPuzzle.js"></script>
+    <link rel="stylesheet" href="SymmetryGroupPuzzle.css">
+</head>
+<body>
+    <h1>Symmetry Group Puzzle</h1>
+    <button type="button" onclick="OnNewPuzzleButtonClicked()">New Puzzle</button>
+    <button type="button" onclick="OnNewImageButtonClicked()">New Image</button>
+    <br>
+    <br>
+    <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
+</body>
+</html>
