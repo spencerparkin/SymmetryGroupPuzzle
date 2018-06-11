@@ -55,7 +55,6 @@ class Mesh {
         this.vertex_list = [];
         this.index_buffer = null;
         this.vertex_buffer = null;
-        this.symmetry_list = null;
         if('symmetry_list' in mesh_data) {
             this.symmetry_list = [];
             for(let i = 0; i < mesh_data['symmetry_list'].length; i++) {
@@ -170,16 +169,13 @@ class Mesh {
 
 var gl = null;
 var puzzle = new Puzzle();
-var picture_mesh_shader_program = {
-    'vert_shader_source': 'Shaders/PictureVertShader.txt',
-    'frag_shader_source': 'Shaders/PictureFragShader.txt',
-};
-var capture_mesh_shader_program = {
-    'vert_shader_source': 'Shaders/CaptureVertShader.txt',
-    'frag_shader_source': 'Shaders/CaptureFragShader.txt',
+var mesh_shader_program = {
+    'vert_shader_source': 'Shaders/MeshVertShader.txt',
+    'frag_shader_source': 'Shaders/MeshFragShader.txt',
 };
 var picture_mesh_texture = {
-    'source': null,
+    'number': 0,
+    'source': 'Images/image0.png',
 };
 
 var OnDocumentReady = () => {
@@ -210,13 +206,21 @@ var OnCanvasMouseWheel = event => {
 var OnNewPuzzleButtonClicked = () => {
     Promise.all([
         puzzle.Promise('Puzzles/Puzzle1.json'),
-        PromiseShaderProgram(picture_mesh_shader_program),
+        PromiseShaderProgram(mesh_shader_program),
+        PromiseTexture(picture_mesh_texture)
     ]).then(() => {
-        //...
+        puzzle.Render();
     });
 }
 
 var OnNewImageButtonClicked = () => {
+    picture_mesh_texture.number = (picture_mesh_texture.number + 1) % 10;
+    picture_mesh_texture.source = 'Images/image' + picture_mesh_texture.number.toString() + '.png';
+    Promise.all([
+        PromiseTexture(picture_mesh_texture)
+    ]).then(() => {
+        puzzle.Render();
+    });
 }
 
 $(document).ready(OnDocumentReady);
