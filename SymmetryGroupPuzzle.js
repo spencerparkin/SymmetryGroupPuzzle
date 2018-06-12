@@ -40,10 +40,9 @@ class Puzzle {
     }
     
     Render() {
-        let width = $('#canvas').width();
-        let height = $('#canvas').height();
+        let canvas = $('#canvas')[0];
         
-        gl.viewport(0, 0, width, height);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT);
         
         gl.activeTexture(gl.TEXTURE0);
@@ -229,6 +228,11 @@ var picture_mesh_texture = {
 var OnDocumentReady = () => {
 	try {
 	    let canvas = $('#canvas')[0];
+	    canvas.style.width = '512px';
+	    canvas.style.height = '512px';
+	    canvas.width = 512;
+	    canvas.height = 512;
+	    
 	    gl = canvas.getContext('webgl2');
 	    if(!gl) {
 	        throw 'WebGL is not available.';
