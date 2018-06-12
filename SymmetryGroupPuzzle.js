@@ -156,7 +156,7 @@ class Mesh {
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
         
-        gl.drawElements(gl.TRIANGLES, this.triangle_list.length, gl.UNSIGNED_BYTE, 0);
+        gl.drawElements(gl.TRIANGLES, this.triangle_list.length, gl.UNSIGNED_SHORT, 0);
     }
     
     MakeIndexBufferData() {
@@ -166,7 +166,7 @@ class Mesh {
                 index_list.push(this.triangle_list[i][j]);
             }
         }
-        return new Uint32Array(index_list);
+        return new Uint16Array(index_list);
     }
     
     MakeVertexBufferData() {
