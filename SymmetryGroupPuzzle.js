@@ -155,7 +155,7 @@ class Mesh {
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
         
-        gl.drawElements(gl.TRIANGLES, this.triangle_list.length, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
     }
     
     MakeIndexBufferData() {
