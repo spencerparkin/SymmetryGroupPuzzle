@@ -1,4 +1,4 @@
-# gl-helpers.js
+// gl-helpers.js
 
 var PromiseShaderProgram = (shader_program) => new Promise((resolve, reject) => {
     Promise.all([
@@ -49,7 +49,7 @@ var PromiseTexture = (texture) => new Promise((resolve, reject) => {
         }
         texture.tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture.tex);
-        if(texture.setup === null) {
+        if(texture.setup === undefined) {
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
