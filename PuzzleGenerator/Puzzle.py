@@ -136,6 +136,7 @@ class Puzzle(object):
         rect = AxisAlignedRectangle()
         rect.GrowFor(graph)
         rect.Scale(1.1)
+        rect.ExpandToMatchAspectRatioOf(AxisAlignedRectangle(Vector(0.0, 0.0), Vector(1.0, 1.0)))
         graph.Add(rect)
 
         # Before we can pull the empty cycles out of the graph, we need to merge all connected components into one.
