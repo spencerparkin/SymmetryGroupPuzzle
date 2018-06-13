@@ -5,10 +5,16 @@ body {
 
 p {
     text-align: left;
+    margin-left: 100px;
+    margin-right: 100px;
 }
 
 canvas {
 	border: 1px solid black;
 	width: 900px;
 	height: 900px;
+}
+
+p, h1, h2, h3 {
+    font-family: 'Roboto', sans-serif;
 }

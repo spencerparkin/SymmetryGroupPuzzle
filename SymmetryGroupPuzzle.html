@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Symmetry Group Puzzle</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <script src="https://code.jquery.com/jquery.js"></script>
     <script src="Scripts/gl-matrix.js"></script>
     <script src="Scripts/gl-helpers.js"></script>
@@ -19,5 +20,31 @@
     <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
     <br>
     <button type="button" onclick="OnScrambleButtonClicked()">Scramble!</button>
+    <h2>Introduction</h2>
+    <p>
+        Welcome!  This page features a kind of twisty puzzle based upon the symmetries of overlapping shapes.
+        Every shape of the plane has an associated group of symmetries (even if it's just the trivial group!)
+        A symmetry of a shape is simply any way you can remove it from the plane (leaving a hole in its place),
+        re-orient the shape in your hand, and then fit the shape back into the hole.  If we overlap a bunch of shapes
+        in the plane, then we can get a larger group of transformations constructed from the individual symmetry groups
+        of each shape.  Your job, given any element of this group, is to find a factorization of that element
+        in terms of a given set of generators.
+    </p>
+    <h2>Usage</h2>
+    <p>
+        The puzzle above is completely mouse driven.  Hovering over the desired shape, use the mouse wheel to
+        rotate the shape clock-wise or counter-click-wise; or click on the shape to reflect it across an axis
+        near the location of the mouse cursor.  That's it!
+    </p>
+    <p>
+        The buttons up-top let you cycle through the various puzzles and images available.  A button below
+        lets you scramble the current puzzle.  Notice that animation and hover-highlights can be toggled.
+    </p>
+    <h2>Group Theory</h2>
+    <p>
+        Group theory is a beautiful subject, and so I can't help but give here a few of my thoughts on the
+        subject as it relates to twisty puzzles.  Do that here...talk about homorphisms and factor groups, conjugates
+        and commutators, and maybe even stabilizer chains.
+    </p>
 </body>
 </html>
