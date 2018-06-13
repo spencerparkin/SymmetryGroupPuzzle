@@ -3,7 +3,7 @@
 import os
 import sys
 
-sys.path.append(r'C:\pyMath2D')
+sys.path.append(r'C:\dev\pyMath2D')
 
 from Puzzle import Puzzle
 from Puzzle1 import Puzzle1
@@ -29,4 +29,6 @@ if __name__ == '__main__':
         puzzle = puzzle_class()
         if args.puzzle is not None and puzzle.Name() != args.puzzle:
             continue
+        print('=======================================================================')
+        print('Processing: ' + puzzle.Name())
         puzzle.Generate(puzzle_folder)

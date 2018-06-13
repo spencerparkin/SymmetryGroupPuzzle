@@ -19,34 +19,20 @@ from math2d_line_segment import LineSegment
 class CutRegion(object):
     def __init__(self):
         self.region = None
-        # We don't need every symmetry of the shape here.  We only need enough
-        # to generate the symmetry group of the shape.  We add a bit more symmetries
-        # than that, however, to make things convenient for the user.  The first 2
-        # symmetries must be rotation symmetries for CCW and CW, respectively, and
-        # in that order.  The rest are reflections.  This is what the JS code expects.
-        # It would be awesome if I could just calculate the desired symmetries as a
-        # function of the region's geometry, but that appears to me to be a very non-
-        # trivial problem.  It's possible, however, that we may be able to always verify
-        # that a given transform is a symmetry of the region by seeing if it permutes
-        # the vertices of the region.
         self.symmetry_list = []
+    
+    def GenerateSymmetryList(self):
+        from math2d_point_cloud import PointCloud
+        point_cloud = PointCloud()
+        point_cloud.Add(self.region)
+        reflection_list, ccw_rotation, cw_rotation = point_cloud.GenerateSymmetries()
+        self.symmetry_list = [ccw_rotation, cw_rotation] + [entry['reflection'] for entry in reflection_list]
     
     def GenerateRegularPolygon(self, sides, radius):
         sub_region = SubRegion()
         sub_region.polygon.MakeRegularPolygon(sides, radius)
         self.region = Region()
         self.region.sub_region_list.append(sub_region)
-        symmetry = AffineTransform()
-        symmetry.linear_transform.Rotation(2.0 * math.pi / float(sides))
-        self.symmetry_list.append(symmetry)
-        symmetry = AffineTransform()
-        symmetry.linear_transform.Rotation(-2.0 * math.pi / float(sides))
-        self.symmetry_list.append(symmetry)
-        for i in range(3):
-            vector = Vector(angle=2.0 * math.pi * float(i) / float(sides))
-            symmetry = AffineTransform()
-            symmetry.linear_transform.Reflection(vector)
-            self.symmetry_list.append(symmetry)
 
     def GenerateRectangle(self, width, height):
         if width == height:
@@ -58,18 +44,6 @@ class CutRegion(object):
         sub_region.polygon.vertex_list.append(Vector(-width / 2.0, height / 2.0))
         self.region = Region()
         self.region.sub_region_list.append(sub_region)
-        symmetry = AffineTransform()
-        symmetry.linear_transform.Rotation(math.pi)
-        self.symmetry_list.append(symmetry)
-        symmetry = AffineTransform()
-        symmetry.linear_transform.Rotation(math.pi)
-        self.symmetry_list.append(symmetry) # Add another for the CW direction, which, of course, is the same.
-        symmetry = AffineTransform()
-        symmetry.linear_transform.Reflection(Vector(1.0, 0.0))
-        self.symmetry_list.append(symmetry)
-        symmetry = AffineTransform()
-        symmetry.linear_transform.Reflection(Vector(0.0, 1.0))
-        self.symmetry_list.append(symmetry)
 
     def Transform(self, transform):
         self.region = transform * self.region
@@ -85,6 +59,13 @@ class Puzzle(object):
         return ''
     
     def Generate(self, puzzle_folder):
+        
+        # Go calculate all the needed symmetries of the cut-shape.
+        # We need enough to generate the symmetry group of the shape, but we
+        # also want those symmetries that are convenient for the user too.
+        print('Generating symmetries...')
+        for cut_region in self.cut_region_list:
+            cut_region.GenerateSymmetryList()
         
         # Add the cut-regions to a planar graph.
         print('Adding cut regions...')
