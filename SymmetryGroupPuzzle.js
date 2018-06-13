@@ -1,6 +1,7 @@
 // SymmetryGroupPuzzle.js
 
 // TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
+// TODO: Animation should be optional, as should mesh highlights.
 
 class Puzzle {
     constructor() {
@@ -31,7 +32,6 @@ class Puzzle {
                         mesh_promise_list.push(mesh.Promise('Puzzles/' + mesh_data.file));
                     });
                     Promise.all(mesh_promise_list).then(() => {
-                        // TODO: Scramble the puzzle here.
                         resolve();
                     });
                 },
@@ -417,9 +417,7 @@ var OnNewPuzzleButtonClicked = () => {
 var OnNewImageButtonClicked = () => {
     picture_mesh_texture.number = (picture_mesh_texture.number + 1) % 10;
     picture_mesh_texture.source = 'Images/image' + picture_mesh_texture.number.toString() + '.png';
-    Promise.all([
-        PromiseTexture(picture_mesh_texture)
-    ]).then(() => {
+    PromiseTexture(picture_mesh_texture).then(() => {
         puzzle.Render();
     });
 }
