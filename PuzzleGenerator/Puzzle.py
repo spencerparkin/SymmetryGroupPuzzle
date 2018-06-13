@@ -26,7 +26,9 @@ class CutRegion(object):
         # in that order.  The rest are reflections.  This is what the JS code expects.
         # It would be awesome if I could just calculate the desired symmetries as a
         # function of the region's geometry, but that appears to me to be a very non-
-        # trivial problem.
+        # trivial problem.  It's possible, however, that we may be able to always verify
+        # that a given transform is a symmetry of the region by seeing if it permutes
+        # the vertices of the region.
         self.symmetry_list = []
     
     def GenerateRegularPolygon(self, sides, radius):
