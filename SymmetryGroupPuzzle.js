@@ -311,6 +311,7 @@ class Mesh {
 
 var gl = null;
 var puzzle = new Puzzle();
+var puzzle_number = 1;
 var mesh_shader_program = {
     'vert_shader_source': 'Shaders/MeshVertShader.txt',
     'frag_shader_source': 'Shaders/MeshFragShader.txt',
@@ -342,6 +343,15 @@ var OnDocumentReady = () => {
 	    $('#canvas').mousemove(OnCanvasMouseMove);
 
         setInterval(OnIntervalHit, 10);
+
+        Promise.all([
+            puzzle.Promise('Puzzles/Puzzle' + puzzle_number.toString() + '.json'),
+            PromiseShaderProgram(mesh_shader_program),
+            PromiseTexture(picture_mesh_texture)
+        ]).then(() => {
+            puzzle.Render();
+            $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
+        });
 
 	} catch(error) {
 	    alert('Error: ' + error.toString());
@@ -394,13 +404,13 @@ var OnCanvasMouseMove = event => {
 }
 
 var OnNewPuzzleButtonClicked = () => {
-    // Temp code...
-    Promise.all([
-        puzzle.Promise('Puzzles/Puzzle1.json'),
-        PromiseShaderProgram(mesh_shader_program),
-        PromiseTexture(picture_mesh_texture)
-    ]).then(() => {
+    puzzle_number += 1;
+    if(puzzle_number > 5)
+        puzzle_number = 1;
+    let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
+    puzzle.Promise(puzzle_file).then(() => {
         puzzle.Render();
+        $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
     });
 }
 
