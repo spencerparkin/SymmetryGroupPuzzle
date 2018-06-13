@@ -132,10 +132,7 @@ class Mesh {
                     symmetry_data['translation']['y'],
                     1.0
                 ]);
-                this.symmetry_list.push({
-                    'transform': transform,
-                    // TODO: Add hot-spot info?
-                });
+                this.symmetry_list.push(transform);
             }
         }
     }
