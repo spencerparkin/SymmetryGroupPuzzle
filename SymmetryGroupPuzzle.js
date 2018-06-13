@@ -107,15 +107,15 @@ class Puzzle {
         return location;
     }
 
-    FindNearestCaptureMesh(point, radius) {
-        let smallest_distance = 9999.0;
+    FindCaptureMeshContainingPoint(point) {
+        let smallest_area = 999999.0;
         let j = -1;
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
-            if(mesh.type === 'capture_mesh') {
-                let distance = vec2.distance(point, mesh.avg_vertex);
-                if(distance <= radius && distance < smallest_distance) {
-                    smallest_distance = distance;
+            if(mesh.type === 'capture_mesh' && mesh.ContainsPoint(point)) {
+                let area = mesh.CalcArea();
+                if(area < smallest_area) {
+                    smallest_area = area;
                     j = i;
                 }
             }
@@ -153,18 +153,6 @@ class Mesh {
         }
     }
 
-    CalcAverageVertex() {
-        let avg_vertex = vec2.create(0.0, 0.0);
-        for(let i = 0; i < this.vertex_list.length; i++) {
-            let vertex_data = this.vertex_list[i];
-            let vertex = vec2.create();
-            vec2.set(vertex, vertex_data['x'], vertex_data['y']);
-            vec2.add(avg_vertex, avg_vertex, vertex);
-        }
-        vec2.scale(avg_vertex, avg_vertex, 1.0 / this.vertex_list.length);
-        return avg_vertex;
-    }
-
     ReleaseBuffers() {
         if(this.index_buffer !== null) {
             gl.deleteBuffer(this.index_buffer);
@@ -191,7 +179,6 @@ class Mesh {
                     this.vertex_buffer = gl.createBuffer();
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
                     gl.bufferData(gl.ARRAY_BUFFER, this.MakeVertexBufferData(), gl.STATIC_DRAW);
-                    this.avg_vertex = this.CalcAverageVertex();
                     resolve();
                 },
                 failure: error => {
@@ -242,32 +229,62 @@ class Mesh {
             // we need only check that any arbitrarily chosen _interior_ point of the given mesh is
             // inside any triangle of this, the capture mesh.
             let triangle = mesh.triangle_list[0];
-            let point_a = mesh.vertex_list[triangle[0]];
-            let point_b = mesh.vertex_list[triangle[1]];
-            let point_c = mesh.vertex_list[triangle[2]];
+            let point_a = mesh.GetVertex(triangle[0]);
+            let point_b = mesh.GetVertex(triangle[1]);
+            let point_c = mesh.GetVertex(triangle[2]);
             let interior_point = vec2.create();
-            add(interior_point, point_a, point_b);
-            add(interior_point, interior_point, point_c);
-            scale(interior_point, interior_point, 1.0 / 3.0);
+            vec2.add(interior_point, point_a, point_b);
+            vec2.add(interior_point, interior_point, point_c);
+            vec2.scale(interior_point, interior_point, 1.0 / 3.0);
             vec2.transformMat3(interior_point, interior_point, this.local_to_world);
-            for(let i = 0; i < this.triangle_list.length; i++) {
-                triangle = this.triangle_list[i];
-                for(let j = 0; j < 3; j++) {
-                    let k = (j + 1) % 3;
-                    let edge_vector = vec2.create();
-                    sub(edge_vector, this.vertex_list[triangle[k]], this.vertex_list[triangle[j]]);
-                    let vector = vec2.create();
-                    sub(vector, interior_point, this.vertex_list[triangle[j]]);
-                    let result = vec3.create();
-                    cross(result, edge_vector, vector);
-                    if(result[2] < 0.0)
-                        break;
-                }
-                if(j === 3)
-                    return true;
-            }
+            if(this.ContainsPoint(interior_point))
+                return true;
         }
         return false;
+    }
+    
+    ContainsPoint(point) {
+        for(let i = 0; i < this.triangle_list.length; i++) {
+            let triangle = this.triangle_list[i];
+            let j = 0;
+            for(j = 0; j < 3; j++) {
+                let k = (j + 1) % 3;
+                let edge_vector = vec2.create();
+                vec2.sub(edge_vector, this.GetVertex(triangle[k]), this.GetVertex(triangle[j]));
+                let vector = vec2.create();
+                vec2.sub(vector, point, this.GetVertex(triangle[j]));
+                let result = vec3.create();
+                vec2.cross(result, edge_vector, vector);
+                if(result[2] < 0.0)
+                    break;
+            }
+            if(j === 3)
+                return true;
+        }
+        return false;
+    }
+    
+    CalcArea() {
+        let total_area = 0.0;
+        for(let i = 0; i < this.triangle_list.length; i++) {
+            let triangle = this.triangle_list[i];
+            let edge_vector_a = vec2.create();
+            let edge_vector_b = vec2.create();
+            vec2.sub(edge_vector_a, this.GetVertex(triangle[1]), this.GetVertex(triangle[0]));
+            vec2.sub(edge_vector_b, this.GetVertex(triangle[2]), this.GetVertex(triangle[0]));
+            let result = vec3.create();
+            vec2.cross(result, edge_vector_a, edge_vector_b);
+            let area = Math.abs(result[2]);
+            total_area += area;
+        }
+        return total_area;
+    }
+    
+    GetVertex(i) {
+        let vertex_data = this.vertex_list[i];
+        let vertex = vec2.create();
+        vec2.set(vertex, vertex_data['x'], vertex_data['y']);
+        return vertex;
     }
 }
 
@@ -312,7 +329,7 @@ var OnDocumentReady = () => {
 
 var OnCanvasClicked = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let j = puzzle.FindNearestCaptureMesh(location, 2.0);
+    let j = puzzle.FindCaptureMeshContainingPoint(location);
     if(j >= 0) {
         let mesh = puzzle.mesh_list[j];
         // TODO: Apply each reflection to the point clicked.  Choose the one that made the point travel the least amount of distance.
@@ -321,7 +338,7 @@ var OnCanvasClicked = event => {
 
 var OnCanvasMouseWheel = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let j = puzzle.FindNearestCaptureMesh(location, 2.0);
+    let j = puzzle.FindCaptureMeshContainingPoint(location);
     if(j >= 0) {
         let mesh = puzzle.mesh_list[j];
         // TODO: The symmetry list will be ordered such that the first 2 are for CCW/CW rotations, respectively, and the rest reflections.
@@ -330,7 +347,7 @@ var OnCanvasMouseWheel = event => {
 
 var OnCanvasMouseMove = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let j = puzzle.FindNearestCaptureMesh(location, 2.0);
+    let j = puzzle.FindCaptureMeshContainingPoint(location);
     if(j != puzzle.highlight_mesh) {
         puzzle.highlight_mesh = j;
         puzzle.Render();
@@ -340,7 +357,7 @@ var OnCanvasMouseMove = event => {
 var OnNewPuzzleButtonClicked = () => {
     // Temp code...
     Promise.all([
-        puzzle.Promise('Puzzles/Puzzle1.json'),
+        puzzle.Promise('Puzzles/Puzzle4.json'),
         PromiseShaderProgram(mesh_shader_program),
         PromiseTexture(picture_mesh_texture)
     ]).then(() => {
