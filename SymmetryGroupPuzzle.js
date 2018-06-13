@@ -228,10 +228,10 @@ var picture_mesh_texture = {
 var OnDocumentReady = () => {
 	try {
 	    let canvas = $('#canvas')[0];
-	    canvas.style.width = '512px';
-	    canvas.style.height = '512px';
-	    canvas.width = 512;
-	    canvas.height = 512;
+	    canvas.style.width = '800px';
+	    canvas.style.height = '800px';
+	    canvas.width = 800;
+	    canvas.height = 800;
 	    
 	    gl = canvas.getContext('webgl2');
 	    if(!gl) {
