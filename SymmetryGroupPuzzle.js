@@ -1,12 +1,14 @@
 // SymmetryGroupPuzzle.js
 
 // TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
+// TODO: We may need to re-orthonormalize the local-to-world matrices as we go to avoid accumulated round-off error.
 
 class Puzzle {
     constructor() {
         this.mesh_list = [];
         this.window_min_point = vec2.create();
         this.window_max_point = vec2.create();
+        this.highlight_mesh = -1;
     }
     
     Promise(source) {
@@ -63,14 +65,25 @@ class Puzzle {
         
         let localToWorldLoc = gl.getUniformLocation(mesh_shader_program.program, 'localToWorld');
         let localVertexLoc = gl.getAttribLocation(mesh_shader_program.program, 'localVertex');
-        
+
+        let blendFactorLoc = gl.getUniformLocation(mesh_shader_program.program, 'blend_factor');
+        gl.uniform4f(blendFactorLoc, 1.0, 1.0, 1.0, 1.0);
+
+        let constColorLoc = gl.getUniformLocation(mesh_shader_program.program, 'const_color');
+        gl.uniform4f(constColorLoc, 1.0, 1.0, 1.0, 0.1);
+
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.type === 'picture_mesh') {
                 mesh.Render(localVertexLoc, localToWorldLoc);
-            } else if(mesh.type === 'capture_mesh') {
-                // TODO: We draw the capture mesh the mouse is hovered nearest.  Can we draw it as a flat half-transparent color blended into the background?
             }
+        }
+
+        // Now blend the capture mesh we would like to highlight.
+        if(this.highlight_mesh >= 0) {
+            gl.uniform4f(blendFactorLoc, 0.0, 0.0, 0.0, 0.0);
+            let mesh = this.mesh_list[this.highlight_mesh];
+            mesh.Render(localVertexLoc, localToWorldLoc);
         }
     }
     
@@ -84,9 +97,14 @@ class Puzzle {
         let rect = canvas.getBoundingClientRect();
         let lerpX = (event.clientX - rect.left) / (rect.right - rect.left);
         let lerpY = 1.0 - (event.clientY - rect.top) / (rect.bottom - rect.top);
-        let x = this.window_min_point.x + lerpX * (this.window_max_point.x - this.window_min_point.x);
-        let y = this.window_min_point.y + lerpY * (this.window_max_point.y - this.window_min_point.y);
-        return vec2.create(x, y);
+        let lerp_vec = vec2.create();
+        vec2.set(lerp_vec, lerpX, lerpY);
+        let location = vec2.create();
+        vec2.sub(location, this.window_max_point, this.window_min_point);
+        vec2.mul(location, location, lerp_vec);
+        vec2.add(location, location, this.window_min_point);
+        //console.log(location[0].toString() + ', ' + location[1].toString());
+        return location;
     }
 
     FindNearestCaptureMesh(point, radius) {
@@ -102,9 +120,7 @@ class Puzzle {
                 }
             }
         }
-        if(j < 0)
-            return null;
-        return this.mesh_list[j];
+        return j;
     }
 }
 
@@ -140,8 +156,9 @@ class Mesh {
     CalcAverageVertex() {
         let avg_vertex = vec2.create(0.0, 0.0);
         for(let i = 0; i < this.vertex_list.length; i++) {
-            let vertex = this.vertex_list[i];
-            vertex = vec2.create(vertex['x'], vertex['y']);
+            let vertex_data = this.vertex_list[i];
+            let vertex = vec2.create();
+            vec2.set(vertex, vertex_data['x'], vertex_data['y']);
             vec2.add(avg_vertex, avg_vertex, vertex);
         }
         vec2.scale(avg_vertex, avg_vertex, 1.0 / this.vertex_list.length);
@@ -279,8 +296,12 @@ var OnDocumentReady = () => {
 	    }
 
 	    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	    gl.enable(gl.BLEND);
+	    gl.disable(gl.DEPTH_TEST);
+	    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 	    $('#canvas').click(OnCanvasClicked);
+	    $('#canvas').mousemove(OnCanvasMouseMove);
 
         //...
 
@@ -291,20 +312,33 @@ var OnDocumentReady = () => {
 
 var OnCanvasClicked = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let mesh = puzzle.FindNearestCaptureMesh(location, 2.0);
-    // TODO: Apply each reflection to the point clicked.  Choose the one that made the point travel the least amount of distance.
-    //       In some cases we can identify the reflection symmetries as those having real eigen values.
-    //       180 degree rotations, however, will have real eigen values, but maybe that doesn't matter.
+    let j = puzzle.FindNearestCaptureMesh(location, 2.0);
+    if(j >= 0) {
+        let mesh = puzzle.mesh_list[j];
+        // TODO: Apply each reflection to the point clicked.  Choose the one that made the point travel the least amount of distance.
+    }
 }
 
 var OnCanvasMouseWheel = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let mesh = puzzle.FindNearestCaptureMesh(location, 2.0);
-    // TODO: We need to identify the symmetry for each mouse wheel direction.  I think the best way to do this
-    //       is to decompose the rotation symmetries.
+    let j = puzzle.FindNearestCaptureMesh(location, 2.0);
+    if(j >= 0) {
+        let mesh = puzzle.mesh_list[j];
+        // TODO: The symmetry list will be ordered such that the first 2 are for CCW/CW rotations, respectively, and the rest reflections.
+    }
+}
+
+var OnCanvasMouseMove = event => {
+    let location = puzzle.CalcMouseLocation(event);
+    let j = puzzle.FindNearestCaptureMesh(location, 2.0);
+    if(j != puzzle.highlight_mesh) {
+        puzzle.highlight_mesh = j;
+        puzzle.Render();
+    }
 }
 
 var OnNewPuzzleButtonClicked = () => {
+    // Temp code...
     Promise.all([
         puzzle.Promise('Puzzles/Puzzle1.json'),
         PromiseShaderProgram(mesh_shader_program),
