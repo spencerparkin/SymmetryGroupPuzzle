@@ -10,6 +10,38 @@
                             "y": 1.0
                         },
                         "y_axis": {
+                            "x": -1.0,
+                            "y": 0.0
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 0.0,
+                            "y": -1.0
+                        },
+                        "y_axis": {
+                            "x": 1.0,
+                            "y": 0.0
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 0.0,
+                            "y": 1.0
+                        },
+                        "y_axis": {
                             "x": 1.0,
                             "y": 0.0
                         }
@@ -50,7 +82,13 @@
                         "x": 0.0,
                         "y": 0.0
                     }
-                },
+                }
+            ],
+            "type": "capture_mesh"
+        },
+        {
+            "file": "Puzzle3_CaptureMesh1.json",
+            "symmetry_list": [
                 {
                     "linear_transform": {
                         "x_axis": {
@@ -63,7 +101,7 @@
                         }
                     },
                     "translation": {
-                        "x": 0.0,
+                        "x": -3.0,
                         "y": 0.0
                     }
                 },
@@ -80,15 +118,9 @@
                     },
                     "translation": {
                         "x": 0.0,
-                        "y": 0.0
+                        "y": -3.0
                     }
-                }
-            ],
-            "type": "capture_mesh"
-        },
-        {
-            "file": "Puzzle3_CaptureMesh1.json",
-            "symmetry_list": [
+                },
                 {
                     "linear_transform": {
                         "x_axis": {
@@ -136,7 +168,13 @@
                         "x": 4.440892098500626e-16,
                         "y": -4.440892098500626e-16
                     }
-                },
+                }
+            ],
+            "type": "capture_mesh"
+        },
+        {
+            "file": "Puzzle3_CaptureMesh2.json",
+            "symmetry_list": [
                 {
                     "linear_transform": {
                         "x_axis": {
@@ -149,7 +187,7 @@
                         }
                     },
                     "translation": {
-                        "x": -3.0,
+                        "x": 6.0,
                         "y": 0.0
                     }
                 },
@@ -166,15 +204,9 @@
                     },
                     "translation": {
                         "x": 0.0,
-                        "y": -3.0
+                        "y": 6.0
                     }
-                }
-            ],
-            "type": "capture_mesh"
-        },
-        {
-            "file": "Puzzle3_CaptureMesh2.json",
-            "symmetry_list": [
+                },
                 {
                     "linear_transform": {
                         "x_axis": {
@@ -221,38 +253,6 @@
                     "translation": {
                         "x": -8.881784197001252e-16,
                         "y": 8.881784197001252e-16
-                    }
-                },
-                {
-                    "linear_transform": {
-                        "x_axis": {
-                            "x": 0.0,
-                            "y": 1.0
-                        },
-                        "y_axis": {
-                            "x": -1.0,
-                            "y": 0.0
-                        }
-                    },
-                    "translation": {
-                        "x": 6.0,
-                        "y": 0.0
-                    }
-                },
-                {
-                    "linear_transform": {
-                        "x_axis": {
-                            "x": 0.0,
-                            "y": -1.0
-                        },
-                        "y_axis": {
-                            "x": 1.0,
-                            "y": 0.0
-                        }
-                    },
-                    "translation": {
-                        "x": 0.0,
-                        "y": 6.0
                     }
                 }
             ],

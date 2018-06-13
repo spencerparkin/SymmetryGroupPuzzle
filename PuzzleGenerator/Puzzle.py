@@ -21,7 +21,9 @@ class CutRegion(object):
         self.region = None
         # We don't need every symmetry of the shape here.  We only need enough
         # to generate the symmetry group of the shape.  We add a bit more symmetries
-        # than that, however, to make things convenient for the user.
+        # than that, however, to make things convenient for the user.  The first 2
+        # symmetries must be rotation symmetries for CCW and CW, respectively, and
+        # in that order.  The rest are reflections.  This is what the JS code expects.
         self.symmetry_list = []
     
     def GenerateRegularPolygon(self, sides, radius):
@@ -29,19 +31,21 @@ class CutRegion(object):
         sub_region.polygon.MakeRegularPolygon(sides, radius)
         self.region = Region()
         self.region.sub_region_list.append(sub_region)
-        for i in range(3):
-            vector = Vector(angle=2.0 * math.pi * float(i) / float(sides))
-            symmetry = AffineTransform()
-            symmetry.linear_transform.Reflection(vector)
-            self.symmetry_list.append(symmetry)
         symmetry = AffineTransform()
         symmetry.linear_transform.Rotation(2.0 * math.pi / float(sides))
         self.symmetry_list.append(symmetry)
         symmetry = AffineTransform()
         symmetry.linear_transform.Rotation(-2.0 * math.pi / float(sides))
         self.symmetry_list.append(symmetry)
+        for i in range(3):
+            vector = Vector(angle=2.0 * math.pi * float(i) / float(sides))
+            symmetry = AffineTransform()
+            symmetry.linear_transform.Reflection(vector)
+            self.symmetry_list.append(symmetry)
 
     def GenerateRectangle(self, width, height):
+        if width == height:
+            raise Exception('Not strictly a rectangle.')
         sub_region = SubRegion()
         sub_region.polygon.vertex_list.append(Vector(-width / 2.0, -height / 2.0))
         sub_region.polygon.vertex_list.append(Vector(width / 2.0, -height / 2.0))
@@ -50,13 +54,16 @@ class CutRegion(object):
         self.region = Region()
         self.region.sub_region_list.append(sub_region)
         symmetry = AffineTransform()
+        symmetry.linear_transform.Rotation(math.pi)
+        self.symmetry_list.append(symmetry)
+        symmetry = AffineTransform()
+        symmetry.linear_transform.Rotation(math.pi)
+        self.symmetry_list.append(symmetry) # Add another for the CW direction, which, of course, is the same.
+        symmetry = AffineTransform()
         symmetry.linear_transform.Reflection(Vector(1.0, 0.0))
         self.symmetry_list.append(symmetry)
         symmetry = AffineTransform()
         symmetry.linear_transform.Reflection(Vector(0.0, 1.0))
-        self.symmetry_list.append(symmetry)
-        symmetry = AffineTransform()
-        symmetry.linear_transform.Rotation(math.pi)
         self.symmetry_list.append(symmetry)
 
     def Transform(self, transform):
