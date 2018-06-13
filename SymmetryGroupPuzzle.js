@@ -1,5 +1,7 @@
 // SymmetryGroupPuzzle.js
 
+// TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
+
 class Puzzle {
     constructor() {
         this.mesh_list = [];
@@ -75,6 +77,35 @@ class Puzzle {
     IsSolved() {
         // TODO: Check that all mesh local-to-world matrices are the identity.
     }
+
+    CalcMouseLocation(event) {
+        let canvas = $('#canvas')[0];
+        let context = canvas.getContext('2d');
+        let rect = canvas.getBoundingClientRect();
+        let lerpX = (event.clientX - rect.left) / (rect.right - rect.left);
+        let lerpY = 1.0 - (event.clientY - rect.top) / (rect.bottom - rect.top);
+        let x = this.window_min_point.x + lerpX * (this.window_max_point.x - this.window_min_point.x);
+        let y = this.window_min_point.y + lerpY * (this.window_max_point.y - this.window_min_point.y);
+        return vec2.create(x, y);
+    }
+
+    FindNearestCaptureMesh(point, radius) {
+        let smallest_distance = 9999.0;
+        let j = -1;
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.type === 'capture_mesh') {
+                let distance = vec2.distance(point, mesh.avg_vertex);
+                if(distance <= radius && distance < smallest_distance) {
+                    smallest_distance = distance;
+                    j = i;
+                }
+            }
+        }
+        if(j < 0)
+            return null;
+        return this.mesh_list[j];
+    }
 }
 
 class Mesh {
@@ -108,7 +139,18 @@ class Mesh {
             }
         }
     }
-    
+
+    CalcAverageVertex() {
+        let avg_vertex = vec2.create(0.0, 0.0);
+        for(let i = 0; i < this.vertex_list.length; i++) {
+            let vertex = this.vertex_list[i];
+            vertex = vec2.create(vertex['x'], vertex['y']);
+            vec2.add(avg_vertex, avg_vertex, vertex);
+        }
+        vec2.scale(avg_vertex, avg_vertex, 1.0 / this.vertex_list.length);
+        return avg_vertex;
+    }
+
     ReleaseBuffers() {
         if(this.index_buffer !== null) {
             gl.deleteBuffer(this.index_buffer);
@@ -135,6 +177,7 @@ class Mesh {
                     this.vertex_buffer = gl.createBuffer();
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
                     gl.bufferData(gl.ARRAY_BUFFER, this.MakeVertexBufferData(), gl.STATIC_DRAW);
+                    this.avg_vertex = this.CalcAverageVertex();
                     resolve();
                 },
                 failure: error => {
@@ -250,9 +293,18 @@ var OnDocumentReady = () => {
 }
 
 var OnCanvasClicked = event => {
+    let location = puzzle.CalcMouseLocation(event);
+    let mesh = puzzle.FindNearestCaptureMesh(location, 2.0);
+    // TODO: Apply each reflection to the point clicked.  Choose the one that made the point travel the least amount of distance.
+    //       In some cases we can identify the reflection symmetries as those having real eigen values.
+    //       180 degree rotations, however, will have real eigen values, but maybe that doesn't matter.
 }
 
 var OnCanvasMouseWheel = event => {
+    let location = puzzle.CalcMouseLocation(event);
+    let mesh = puzzle.FindNearestCaptureMesh(location, 2.0);
+    // TODO: We need to identify the symmetry for each mouse wheel direction.  I think the best way to do this
+    //       is to decompose the rotation symmetries.
 }
 
 var OnNewPuzzleButtonClicked = () => {

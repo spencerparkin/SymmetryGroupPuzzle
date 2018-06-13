@@ -184,7 +184,6 @@ class Puzzle(object):
                 'file': mesh_file,
                 'type': 'capture_mesh',
                 'symmetry_list': [symmetry.Serialize() for symmetry in cut_region.symmetry_list]
-                # TODO: We need to add some hot-spot data here to aide in knowing which symmetry to use based on mouse location.
             })
         for i, polygon in enumerate(polygon_list):
             mesh_file = self.Name() + '_PictureMesh%d.json' % i
