@@ -69,7 +69,7 @@ class Puzzle {
             if(mesh.type === 'picture_mesh') {
                 mesh.Render(localVertexLoc, localToWorldLoc);
             } else if(mesh.type === 'capture_mesh') {
-                // TODO: We draw the capture mesh the mouse is hovered nearest.
+                // TODO: We draw the capture mesh the mouse is hovered nearest.  Can we draw it as a flat half-transparent color blended into the background?
             }
         }
     }
