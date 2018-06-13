@@ -24,6 +24,9 @@ class CutRegion(object):
         # than that, however, to make things convenient for the user.  The first 2
         # symmetries must be rotation symmetries for CCW and CW, respectively, and
         # in that order.  The rest are reflections.  This is what the JS code expects.
+        # It would be awesome if I could just calculate the desired symmetries as a
+        # function of the region's geometry, but that appears to me to be a very non-
+        # trivial problem.
         self.symmetry_list = []
     
     def GenerateRegularPolygon(self, sides, radius):
