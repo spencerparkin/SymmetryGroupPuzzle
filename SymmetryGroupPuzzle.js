@@ -1,7 +1,6 @@
 // SymmetryGroupPuzzle.js
 
 // TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
-// TODO: We may need to re-orthonormalize the local-to-world matrices as we go to avoid accumulated round-off error.
 
 class Puzzle {
     constructor() {
@@ -9,6 +8,7 @@ class Puzzle {
         this.window_min_point = vec2.create();
         this.window_max_point = vec2.create();
         this.highlight_mesh = -1;
+        this.move_queue = [];
     }
     
     Promise(source) {
@@ -84,6 +84,27 @@ class Puzzle {
             gl.uniform4f(blendFactorLoc, 0.0, 0.0, 0.0, 0.0);
             let mesh = this.mesh_list[this.highlight_mesh];
             mesh.Render(localVertexLoc, localToWorldLoc);
+        }
+    }
+    
+    AnimateSettled() {
+        // TODO: Are all animation transformed fully interpolated?
+        return true;
+    }
+    
+    AdvanceAnimation() {
+        // TODO: Interpolate animation transforms.
+    }
+    
+    ApplyMove(move) {
+        let capture_mesh = this.mesh_list[move[0]];
+        let symmetry = capture_mesh.symmetry_list[move[1]];
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.type === 'picture_mesh' && capture_mesh.CapturesMesh(mesh)) {
+                mat3.mul(mesh.local_to_world, symmetry, mesh.local_to_world);
+                // TODO: Re-orthonormalize the mesh transform here to combat accumulated round-off error?
+            }
         }
     }
     
@@ -236,7 +257,7 @@ class Mesh {
             vec2.add(interior_point, point_a, point_b);
             vec2.add(interior_point, interior_point, point_c);
             vec2.scale(interior_point, interior_point, 1.0 / 3.0);
-            vec2.transformMat3(interior_point, interior_point, this.local_to_world);
+            vec2.transformMat3(interior_point, interior_point, mesh.local_to_world);
             if(this.ContainsPoint(interior_point))
                 return true;
         }
@@ -320,7 +341,7 @@ var OnDocumentReady = () => {
 	    $('#canvas').click(OnCanvasClicked);
 	    $('#canvas').mousemove(OnCanvasMouseMove);
 
-        //...
+        setInterval(OnIntervalHit, 10);
 
 	} catch(error) {
 	    alert('Error: ' + error.toString());
@@ -329,27 +350,45 @@ var OnDocumentReady = () => {
 
 var OnCanvasClicked = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let j = puzzle.FindCaptureMeshContainingPoint(location);
-    if(j >= 0) {
-        let mesh = puzzle.mesh_list[j];
-        // TODO: Apply each reflection to the point clicked.  Choose the one that made the point travel the least amount of distance.
+    let i = puzzle.FindCaptureMeshContainingPoint(location);
+    if(i >= 0) {
+        let mesh = puzzle.mesh_list[i];
+        // We skip the first 2, because they're rotations.  We only care about the reflections here.
+        let smallest_distance = 99999.0;
+        let j = -1;
+        for(let k = 2; k < mesh.symmetry_list.length; k++) {
+            let reflection = mesh.symmetry_list[k];
+            let location_reflected = vec2.create();
+            vec2.transformMat3(location_reflected, location, reflection);
+            let distance = vec2.distance(location_reflected, location);
+            if(distance < smallest_distance) {
+                smallest_distance = distance;
+                j = k;
+            }
+        }
+        if(j >= 0) {
+            puzzle.move_queue.push([i, j]);
+        }
     }
 }
 
 var OnCanvasMouseWheel = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let j = puzzle.FindCaptureMeshContainingPoint(location);
-    if(j >= 0) {
-        let mesh = puzzle.mesh_list[j];
-        // TODO: The symmetry list will be ordered such that the first 2 are for CCW/CW rotations, respectively, and the rest reflections.
+    let i = puzzle.FindCaptureMeshContainingPoint(location);
+    if(i >= 0) {
+        let mesh = puzzle.mesh_list[i];
+        // The first two symmetries are always CCW/CW rotations, repsectively.
+        let j = event.wheelDeltaY < 0 ? 1 : 0;
+        puzzle.move_queue.push([i, j]);
+        event.preventDefault();
     }
 }
 
 var OnCanvasMouseMove = event => {
     let location = puzzle.CalcMouseLocation(event);
-    let j = puzzle.FindCaptureMeshContainingPoint(location);
-    if(j != puzzle.highlight_mesh) {
-        puzzle.highlight_mesh = j;
+    let i = puzzle.FindCaptureMeshContainingPoint(location);
+    if(i != puzzle.highlight_mesh) {
+        puzzle.highlight_mesh = i;
         puzzle.Render();
     }
 }
@@ -357,7 +396,7 @@ var OnCanvasMouseMove = event => {
 var OnNewPuzzleButtonClicked = () => {
     // Temp code...
     Promise.all([
-        puzzle.Promise('Puzzles/Puzzle4.json'),
+        puzzle.Promise('Puzzles/Puzzle1.json'),
         PromiseShaderProgram(mesh_shader_program),
         PromiseTexture(picture_mesh_texture)
     ]).then(() => {
@@ -373,6 +412,36 @@ var OnNewImageButtonClicked = () => {
     ]).then(() => {
         puzzle.Render();
     });
+}
+
+var OnScrambleButtonClicked = () => {
+    let capture_mesh_list = [];
+    for(let i = 0; i < puzzle.mesh_list.length; i++) {
+        let mesh = puzzle.mesh_list[i];
+        if(mesh.type === 'capture_mesh')
+            capture_mesh_list.push(i);
+    }
+    let count = 30; // TODO: Maybe get this from a control?
+    for(let i = 0; i < count; i++) {
+        let j = Math.floor(Math.random() * capture_mesh_list.length);
+        j = capture_mesh_list[j];
+        let mesh = puzzle.mesh_list[j];
+        let k = Math.floor(Math.random() * mesh.symmetry_list.length);
+        puzzle.move_queue.push([j, k]);
+    }
+}
+
+var OnIntervalHit = () => {
+    if(puzzle.AnimateSettled()) {
+        if(puzzle.move_queue.length > 0) {
+            let move = puzzle.move_queue.pop();
+            puzzle.ApplyMove(move);
+            puzzle.Render();
+        }
+    } else {
+        puzzle.AdvanceAnimation();
+        puzzle.Render();
+    }
 }
 
 $(document).ready(OnDocumentReady);
