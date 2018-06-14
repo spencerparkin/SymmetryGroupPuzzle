@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Symmetry Group Puzzle</title>
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
     <script src="https://code.jquery.com/jquery.js"></script>
     <script src="Scripts/gl-matrix.js"></script>
     <script src="Scripts/gl-helpers.js"></script>
@@ -42,9 +43,53 @@
     </p>
     <h2>Group Theory</h2>
     <p>
-        Group theory is a beautiful subject, and so I can't help but give here a few of my thoughts on the
-        subject as it relates to twisty puzzles.  Do that here...talk about homorphisms and factor groups, conjugates
-        and commutators, and maybe even stabilizer chains.
+        Group theory is a beautiful subject, and among so many other things, provides a model for explaining
+        twisty puzzles.  In particular, when you're playing with a twisty puzzle, you're working within a
+        permutation group.  (All groups are isomorphic to a group of permutations, but permutations themselves
+        provide the clearest model of what's going on physically with most twisty puzzles.)  Specifically,
+        a twist of the puzzle permutes the faces, shapes or stickers of that puzzle.  Multiple twists do the same,
+        and this provides us with the property of closure in groups.  Every twisty puzzle has a solved state,
+        the identity of the group.  And every configuration of the puzzle can be undone by some sequences of twists,
+        an inverse.
+    </p>
+    <p>
+        An interesting application of group theory to twisty puzzles is the notion of recognizing and then working
+        within a homomorphic image of the puzzle's associated permutation group.  A classic example of this is
+        illustrated by the Rubik's Cube.  If you've solved all cubie positions before solving their orientations,
+        then you've first worked in a homomorphic image (or factor group of the overall group), and then worked
+        in the kernel of that homomorphism.  (Try to convince yourself that the set of all move sequences on the
+        Rubik's Cube that preserve cubie position, but not necessarily cubie orientation, forms a normal subgroup.)
+    </p>
+    <h2>Conjugates & Commutators</h2>
+    <p>
+        An interesting observation to make is that most of the useful move sequences found for solving a wide veriety
+        of twisty puzzles come in the form of conjugates and commutators.  If \(A\) and \(B\) are any two move
+        sequences (any two permutations of our group \(G\)), then conjugates and commutators are of the form \(ABA^{-1}\) and \(ABA^{-1}B^{-1}\), respectively.
+    </p>
+    <p>
+        To see why these are so useful, I like to define the notation \(\overline{A}\) to mean the cardinality of the set
+        \(\{s\in S|A(s)\neq s\}\), where each permutation \(X\in G\) acts on the points in \(S\).  Let us
+        call \(\overline{A}\) the damage caused by \(A\).  That said, it is not hard to show that conjugation
+        of \(A\) by some other permutation \(B\) does not increase or decrease the damage of that permutation.
+        In math symbols, \(\overline{A}=\overline{BAB^{-1}}\).  So if the damage remains the same, what effect
+        does conjugation have?  The answer is that it focuses the damage to the twisty puzzle somewhere else!
+        In other words, if we know how \(A\) damages (changes) a puzzle, then we can focus that change somewhere
+        else on the puzzle using \(B\), which is commonly referred to as a setup move.
+    </p>
+    <p>
+        It is also not hard to show that the damage of a commutator is less than the minimum damage caused by
+        either of the two permutations taken in the commutator product.  In math symbols, we would write
+        \(\overline{ABA^{-1}B^{-1}}<\mbox{min}\{\overline{A},\overline{B}\}\).  Commutators, therefore, provide
+        a way to narrow the damage to a puzzle caused by a move sequence, which becomes increasingly important near the end of
+        a solve.  The trick is to find move sequences \(A\) and \(B\) that almost commute, but not quite.
+    </p>
+    <h2>Stabilizer Chains</h2>
+    <p>
+        Blah.
+    </p>
+    <h2>Feedback</h2>
+    <p>
+        Questions or comments?  Please feel free to <a href="mailto:spencertparkin@gmail.com?Subject=Symmetry Group Puzzle" target="_top">e-mail</a> me.
     </p>
 </body>
 </html>
