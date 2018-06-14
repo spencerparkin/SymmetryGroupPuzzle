@@ -87,6 +87,18 @@
     <p>
         Blah.
     </p>
+    <h2>The Puzzle Engine</h2>
+    <p>
+        Implementing the above puzzle in Javascript was a challenge.  I went through a few different designs before
+        landing on what I believe is the best solution.  The puzzles are pre-built by a Python script that takes
+        as input the shapes (generators) of the puzzle, and then outputs from that a set of pair-wise disjoint triangle meshes
+        that fill the canvas.  These meshes are the moving parts of the puzzle, much like the cubies of a Rubik's Cube.
+        An analogy is that the Python script takes as input the cut-planes and then cuts the cube to output the needed cubies.
+        The client-side Javascript then needs only know how to move these pieces of the puzzle around.  It does this
+        by also receiving the original cut-shapes turned capture-shapes.  The capture shapes, when applied, capture all
+        meshes they cover, and then apply to those meshes a symmetry of the shape.  The implementation details can
+        be found <a href="https://github.com/spencerparkin/SymmetryGroupPuzzle">here</a>.
+    </p>
     <h2>Feedback</h2>
     <p>
         Questions or comments?  Please feel free to <a href="mailto:spencertparkin@gmail.com?Subject=Symmetry Group Puzzle" target="_top">e-mail</a> me.
