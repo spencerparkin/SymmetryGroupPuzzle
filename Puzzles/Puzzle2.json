@@ -385,6 +385,10 @@
         {
             "file": "Puzzle2_PictureMesh19.json",
             "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle2_PictureMesh20.json",
+            "type": "picture_mesh"
         }
     ],
     "window": {
