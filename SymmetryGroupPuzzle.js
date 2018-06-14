@@ -1,7 +1,6 @@
 // SymmetryGroupPuzzle.js
 
 // TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
-// TODO: Animation should be optional, as should mesh highlights.
 
 class Puzzle {
     constructor() {
@@ -44,6 +43,7 @@ class Puzzle {
     }
     
     Render() {
+        let animation_enabled = $('#animation_check').is(':checked');
         let canvas = $('#canvas')[0];
         
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -75,7 +75,7 @@ class Puzzle {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.type === 'picture_mesh') {
-                mesh.Render(localVertexLoc, localToWorldLoc);
+                mesh.Render(localVertexLoc, localToWorldLoc, animation_enabled);
             }
         }
 
@@ -83,17 +83,30 @@ class Puzzle {
         if(this.highlight_mesh >= 0) {
             gl.uniform4f(blendFactorLoc, 0.0, 0.0, 0.0, 0.0);
             let mesh = this.mesh_list[this.highlight_mesh];
-            mesh.Render(localVertexLoc, localToWorldLoc);
+            mesh.Render(localVertexLoc, localToWorldLoc, false);
         }
     }
     
-    AnimateSettled() {
-        // TODO: Are all animation transformed fully interpolated?
-        return true;
+    AnimationSettled() {
+        let animation_enabled = $('#animation_check').is(':checked');
+        if(!animation_enabled)
+            return true;
+        else {
+            for(let i = 0; i < this.mesh_list.length; i++) {
+                let mesh = this.mesh_list[i];
+                if(mesh.type === 'picture_mesh' && !mesh.AnimationSettled())
+                    return false;
+            }
+            return true;
+        }
     }
     
     AdvanceAnimation() {
-        // TODO: Interpolate animation transforms.
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.type === 'picture_mesh')
+                mesh.AdvanceAnimation()
+        }
     }
     
     ApplyMove(move) {
@@ -210,9 +223,12 @@ class Mesh {
         });
     }
     
-    Render(localVertexLoc, localToWorldLoc) {
-        // TODO: Use the anim_local_to_world matrix once we have it continually interpolating toward our local_to_world matrix.
-        gl.uniformMatrix3fv(localToWorldLoc, false, this.local_to_world);
+    Render(localVertexLoc, localToWorldLoc, animation_enabled) {
+        let local_to_world = this.local_to_world;
+        if(animation_enabled)
+            local_to_world = this.anim_local_to_world;
+        
+        gl.uniformMatrix3fv(localToWorldLoc, false, local_to_world);
         
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
         gl.vertexAttribPointer(localVertexLoc, 2, gl.FLOAT, false, 8, 0);
@@ -221,6 +237,78 @@ class Mesh {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
         
         gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
+    }
+    
+    AnimationSettled() {
+        let epsilon = 0.001;
+        let diff_mat = mat3.create();
+        mat3.subtract(diff_mat, this.anim_local_to_world, this.local_to_world);
+        let i = 0;
+        let j = 0;
+        for(i = 0; i < 9; i++) {
+            let diff = diff_mat[i];
+            if(Math.abs(diff) < epsilon)
+                j++;
+        }
+        if(j == i) {
+            mat3.copy(this.anim_local_to_world, this.local_to_world);
+            return true;
+        }
+        return false;
+    }
+    
+    AdvanceAnimation() {
+        let lerp = 0.02; // TODO: This really should be based on frame-rate.
+        
+        let anim_x_axis = vec2.create();
+        let anim_y_axis = vec2.create();
+        let anim_translation = vec2.create();
+        
+        vec2.set(anim_x_axis, this.anim_local_to_world[0], this.anim_local_to_world[1]);
+        vec2.set(anim_y_axis, this.anim_local_to_world[3], this.anim_local_to_world[4]);
+        vec2.set(anim_translation, this.anim_local_to_world[6], this.anim_local_to_world[7]);
+        
+        let target_x_axis = vec2.create();
+        let target_y_axis = vec2.create();
+        let target_translation = vec2.create();
+        
+        vec2.set(target_x_axis, this.local_to_world[0], this.local_to_world[1]);
+        vec2.set(target_y_axis, this.local_to_world[3], this.local_to_world[4]);
+        vec2.set(target_translation, this.local_to_world[6], this.local_to_world[7]);
+        
+        vec2.lerp(anim_translation, anim_translation, target_translation, lerp);
+        
+        anim_x_axis = this.Slerp(anim_x_axis, target_x_axis, lerp);
+        anim_y_axis = this.Slerp(anim_y_axis, target_y_axis, lerp);
+        
+        this.anim_local_to_world[0] = anim_x_axis[0];
+        this.anim_local_to_world[1] = anim_x_axis[1];
+        this.anim_local_to_world[3] = anim_y_axis[0];
+        this.anim_local_to_world[4] = anim_y_axis[1];
+        this.anim_local_to_world[6] = anim_translation[0];
+        this.anim_local_to_world[7] = anim_translation[1];
+    }
+    
+    Slerp(normal_a, normal_b, lerp) {
+        let epsilon = 0.01;
+        let result = vec2.create();
+        let dot = vec2.dot(normal_a, normal_b);
+        if(Math.abs(dot + 1.0) < epsilon) {
+            let rot_mat = mat2.create();
+            vec2.fromRotation(rot_mat, math.pi * lerp);
+            vec2.transformMat2(result, normal_a, rot_mat);
+        } else if(Math.abs(dot - 1.0) < epsilon) {
+            vec2.set(result, normal_b);
+        } else {
+            let angle = Math.acos(dot);
+            let vec_a = vec2.create();
+            let vec_b = vec2.create();
+            vec2.scale(vec_a, normal_a, Math.sin((1.0 - lerp) * angle));
+            vec2.scale(vec_b, normal_b, Math.sin(lerp * angle));
+            vec2.add(result, vec_a, vec_b);
+            vec2.scale(result, result, 1.0 / Math.sin(angle));
+        }
+        return result;
     }
     
     MakeIndexBufferData() {
@@ -442,7 +530,7 @@ var OnScrambleButtonClicked = () => {
 }
 
 var OnIntervalHit = () => {
-    if(puzzle.AnimateSettled()) {
+    if(puzzle.AnimationSettled()) {
         if(puzzle.move_queue.length > 0) {
             let move = puzzle.move_queue.pop();
             puzzle.ApplyMove(move);
