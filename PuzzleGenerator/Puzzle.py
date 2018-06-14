@@ -35,8 +35,6 @@ class CutRegion(object):
         self.region.sub_region_list.append(sub_region)
 
     def GenerateRectangle(self, width, height):
-        if width == height:
-            raise Exception('Not strictly a rectangle.')
         sub_region = SubRegion()
         sub_region.polygon.vertex_list.append(Vector(-width / 2.0, -height / 2.0))
         sub_region.polygon.vertex_list.append(Vector(width / 2.0, -height / 2.0))
