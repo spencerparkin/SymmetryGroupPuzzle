@@ -398,6 +398,8 @@ var OnCanvasMouseMove = event => {
     let location = puzzle.CalcMouseLocation(event);
     let i = puzzle.FindCaptureMeshContainingPoint(location);
     if(i != puzzle.highlight_mesh) {
+        if(!$('#hover_highlights_check').is(':checked'))
+            i = -1;
         puzzle.highlight_mesh = i;
         puzzle.Render();
     }
