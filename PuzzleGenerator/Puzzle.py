@@ -56,7 +56,7 @@ class Puzzle(object):
     def Name(self):
         return ''
     
-    def Generate(self, puzzle_folder):
+    def Generate(self, puzzle_folder, preview=None):
         
         # Go calculate all the needed symmetries of the cut-shape.
         # We need enough to generate the symmetry group of the shape, but we
@@ -72,7 +72,8 @@ class Puzzle(object):
             graph.Add(cut_region.region)
         
         # For debugging purposes...
-        #DebugDraw(graph)
+        if preview == 'graph_pre_cut':
+            DebugDraw(graph)
         
         # Make sure that all cut-regions are tessellated.  This lets us do point tests against the regions.
         print('Tessellating cut regions...')
@@ -120,7 +121,8 @@ class Puzzle(object):
                 count += 1
 
         # For debugging purposes...
-        #DebugDraw(graph)
+        if preview == 'graph_post_cut':
+            DebugDraw(graph)
 
         # Calculate a bounding rectangle for the graph, size it up a bit, then add it to the graph.
         print('Adding border...')
@@ -150,7 +152,8 @@ class Puzzle(object):
             graph.Add(line_segment)
 
         # For debugging purposes...
-        #DebugDraw(graph)
+        if preview == 'graph_coalesced':
+            DebugDraw(graph)
 
         # The desired meshes are now simply all of the empty cycles of the graph.
         print('Reading all empty cycles...')
@@ -159,8 +162,9 @@ class Puzzle(object):
             polygon.Tessellate()
         
         # For debugging purposes...
-        #mesh_list = [polygon.mesh for polygon in polygon_list]
-        #DebugDraw(mesh_list)
+        if preview == 'meshes':
+            mesh_list = [polygon.mesh for polygon in polygon_list]
+            DebugDraw(mesh_list)
         
         # Finally, write out the level file along with its accompanying mesh files.
         # Note that I think we can calculate UVs as a function of the object-space coordinates in the shader.
@@ -245,4 +249,4 @@ def DebugDraw(object):
     win.show()
     
     result = app.exec_()
-    return result
+    sys.exit(result)
