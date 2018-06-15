@@ -186,6 +186,8 @@ class Puzzle(object):
                 'type': 'capture_mesh',
                 'symmetry_list': [symmetry.Serialize() for symmetry in cut_region.symmetry_list]
             })
+        # A good draw-order is probably largest area to smallest area.
+        polygon_list.sort(key=lambda polygon: polygon.Area(), reverse=True)
         for i, polygon in enumerate(polygon_list):
             mesh_file = self.Name() + '_PictureMesh%d.json' % i
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
