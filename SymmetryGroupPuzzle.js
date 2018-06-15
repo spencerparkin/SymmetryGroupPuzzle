@@ -163,6 +163,7 @@ class Mesh {
         this.type = mesh_data['type'];
         this.local_to_world = mat3.create();
         this.anim_local_to_world = mat3.create();
+        this.center = vec2.create();
         this.triangle_list = [];
         this.vertex_list = [];
         this.index_buffer = null;
@@ -213,6 +214,7 @@ class Mesh {
                     this.vertex_buffer = gl.createBuffer();
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
                     gl.bufferData(gl.ARRAY_BUFFER, this.MakeVertexBufferData(), gl.STATIC_DRAW);
+                    this.CalcCenter();
                     resolve();
                 },
                 failure: error => {
@@ -221,6 +223,13 @@ class Mesh {
                 }
             });
         });
+    }
+    
+    CalcCenter() {
+        vec2.set(this.center, 0.0, 0.0);
+        for(let i = 0; i < this.vertex_list.length; i++)
+            vec2.add(this.center, this.center, this.GetVertex(i));
+        vec2.scale(this.center, this.center, 1.0 / this.vertex_list.length);
     }
     
     Render(localVertexLoc, localToWorldLoc, animation_enabled) {
@@ -262,24 +271,38 @@ class Mesh {
         
         let anim_x_axis = vec2.create();
         let anim_y_axis = vec2.create();
-        let anim_translation = vec2.create();
         
         vec2.set(anim_x_axis, this.anim_local_to_world[0], this.anim_local_to_world[1]);
         vec2.set(anim_y_axis, this.anim_local_to_world[3], this.anim_local_to_world[4]);
-        vec2.set(anim_translation, this.anim_local_to_world[6], this.anim_local_to_world[7]);
         
         let target_x_axis = vec2.create();
         let target_y_axis = vec2.create();
-        let target_translation = vec2.create();
         
         vec2.set(target_x_axis, this.local_to_world[0], this.local_to_world[1]);
         vec2.set(target_y_axis, this.local_to_world[3], this.local_to_world[4]);
-        vec2.set(target_translation, this.local_to_world[6], this.local_to_world[7]);
-        
-        vec2.lerp(anim_translation, anim_translation, target_translation, lerp);
         
         anim_x_axis = this.Slerp(anim_x_axis, target_x_axis, lerp);
         anim_y_axis = this.Slerp(anim_y_axis, target_y_axis, lerp);
+        
+        let center0 = vec2.create();
+        let center1 = vec2.create();
+        
+        vec2.transformMat3(center0, this.center, this.anim_local_to_world);
+        vec2.transformMat3(center1, this.center, this.local_to_world);
+        
+        let interpolated_center = vec2.create();
+        vec2.lerp(interpolated_center, center0, center1, lerp);
+        
+        let interpolated_orient = mat2.create();
+        interpolated_orient[0] = anim_x_axis[0];
+        interpolated_orient[1] = anim_x_axis[1];
+        interpolated_orient[2] = anim_y_axis[0];
+        interpolated_orient[3] = anim_y_axis[1];
+        
+        let anim_translation = vec2.create();
+        vec2.transformMat2(anim_translation, this.center, interpolated_orient);
+        vec2.scale(anim_translation, anim_translation, -1.0);
+        vec2.add(anim_translation, anim_translation, interpolated_center);
         
         this.anim_local_to_world[0] = anim_x_axis[0];
         this.anim_local_to_world[1] = anim_x_axis[1];
