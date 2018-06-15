@@ -58,6 +58,12 @@ class Puzzle(object):
     
     def Generate(self, puzzle_folder, preview=None):
         
+        # TODO: It would be way rad if I could also generate here a permutation group (in terms
+        #       of some generators) that models the puzzle, and then output a stabilizer chain
+        #       for the puzzle using Shreier-Sims.  The client-side JS could then keep track of
+        #       the puzzle's permutation and query the server with it for a solution to the puzzle.
+        #       Each mesh would need a corresponding permutation associated with it.
+        
         # Go calculate all the needed symmetries of the cut-shape.
         # We need enough to generate the symmetry group of the shape, but we
         # also want those symmetries that are convenient for the user too.

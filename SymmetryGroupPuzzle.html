@@ -78,7 +78,8 @@
     </p>
     <p>
         To see why these are so useful, I like to define the notation \(\overline{A}\) to mean the cardinality of the set
-        \(\{s\in S|A(s)\neq s\}\), where each permutation \(X\in G\) acts on the points in \(S\).  Let us
+        \(\{s\in S|A(s)\neq s\}\), where each permutation \(X\in G\) acts on the points in \(S\).  (i.e.,
+        each \(X\in G\) is a bijective map from \(S\) to \(S\).)  Let us
         call \(\overline{A}\) the damage caused by \(A\).  That said, it is not hard to show that conjugation
         of \(A\) by some other permutation \(B\) does not increase or decrease the damage of that permutation.
         In math symbols, \(\overline{A}=\overline{BAB^{-1}}\).  So if the damage remains the same, what effect
@@ -95,7 +96,33 @@
     </p>
     <h2>Stabilizer Chains</h2>
     <p>
-        Blah.
+        One solution to the factorization problem in computational group theory is found in the use of a data-structure
+        known as a stabilizer chain.  Pick any subset \(R\) of \(S\) and consider all \(X\in G\) such that for all \(s\in R\)
+        we have \(X(s)=s\).  This subset of permutations forms a subgroup of \(G\); namely, the stabilizer in \(G\)
+        of \(R\).  A stablizer chain is a sequence of nested subgroups, where each subgroup
+        stabilizes one more point than its immediately containing group, all the way down to the trivial group.  Each of these subgroups
+        is represented in the computer by a set of generators, and stored along with that is a set of coset representatives
+        for each left (or right) coset of the subgroup in its immediately containing group.  This data-structure is efficiently produced
+        by the Shreier-Sims algorithm, which is based upon Shreier's Lemma, and the Orbit-Stabilizer Theorem.
+    </p>
+    <p>
+        Now, if we have factorizations for all coset representatives in the entire chain in terms of the generators of
+        \(G\), then we can easily find a factorization for any \(X\in G\) by descending the chain.  At each step,
+        it is easy to determine which coset we're in, and then use its representative to tack on more factors and get
+        ourselves into the next sub-group.  Once we've reached the trivial group, we have our factorization.
+    </p>
+    <p>
+        This approach works, but it doesn't find optimal factorizations in terms of length, even if each coset representative
+        had an optimal factorization.  A technique known as trembling can sometimes help one produce smaller factorizations
+        from a stabilizer chain.  Also, finding factorizations for the coset representatives is a difficult task.
+        What I've done in the past is systematically and sometimes randomly generate elements of the group along with their
+        factorizations, and then try to drop them into the chain where they fit best as new or replacement representatives for cosets.
+        This process terminates when all representatives have been given factorizations, which can take a very long time.
+    </p>
+    <p>
+        If you've solved a Rubik's Cube, then you've surely used the stabilizer-chain concept, whether you realized it or not.
+        Whenever you've restricted yourself to a set of move sequences that alter the cube somehow, but preserve a certain
+        part of it, then you've been working in a stabilizer sub-group.
     </p>
     <h2>The Puzzle Engine</h2>
     <p>
