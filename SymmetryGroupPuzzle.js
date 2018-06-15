@@ -240,7 +240,7 @@ class Mesh {
     }
     
     AnimationSettled() {
-        let epsilon = 0.001;
+        let epsilon = 0.1;
         let diff_mat = mat3.create();
         mat3.subtract(diff_mat, this.anim_local_to_world, this.local_to_world);
         let i = 0;
@@ -258,7 +258,7 @@ class Mesh {
     }
     
     AdvanceAnimation() {
-        let lerp = 0.02; // TODO: This really should be based on frame-rate.
+        let lerp = 0.2; // TODO: This really should be based on frame-rate.
         
         let anim_x_axis = vec2.create();
         let anim_y_axis = vec2.create();
@@ -295,10 +295,10 @@ class Mesh {
         let dot = vec2.dot(normal_a, normal_b);
         if(Math.abs(dot + 1.0) < epsilon) {
             let rot_mat = mat2.create();
-            vec2.fromRotation(rot_mat, math.pi * lerp);
+            mat2.fromRotation(rot_mat, Math.PI * lerp);
             vec2.transformMat2(result, normal_a, rot_mat);
         } else if(Math.abs(dot - 1.0) < epsilon) {
-            vec2.set(result, normal_b);
+            vec2.copy(result, normal_b);
         } else {
             let angle = Math.acos(dot);
             let vec_a = vec2.create();
@@ -520,8 +520,13 @@ var OnScrambleButtonClicked = () => {
             capture_mesh_list.push(i);
     }
     let count = 30; // TODO: Maybe get this from a control?
+    let last_j = -1;
     for(let i = 0; i < count; i++) {
-        let j = Math.floor(Math.random() * capture_mesh_list.length);
+        let j = 0;
+        do {
+            j = Math.floor(Math.random() * capture_mesh_list.length);
+        } while(j === last_j);
+        last_j = j;
         j = capture_mesh_list[j];
         let mesh = puzzle.mesh_list[j];
         let k = Math.floor(Math.random() * mesh.symmetry_list.length);
@@ -529,8 +534,13 @@ var OnScrambleButtonClicked = () => {
     }
 }
 
+var settle_render = false;
 var OnIntervalHit = () => {
     if(puzzle.AnimationSettled()) {
+        if(settle_render) {
+            settle_render = false;
+            puzzle.Render();
+        }
         if(puzzle.move_queue.length > 0) {
             let move = puzzle.move_queue.pop();
             puzzle.ApplyMove(move);
@@ -539,6 +549,7 @@ var OnIntervalHit = () => {
     } else {
         puzzle.AdvanceAnimation();
         puzzle.Render();
+        settle_render = true;
     }
 }
 

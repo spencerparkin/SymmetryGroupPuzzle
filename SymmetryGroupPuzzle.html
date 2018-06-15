@@ -21,7 +21,7 @@
     <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
     <br>
     <input id="hover_highlights_check" type="checkbox" checked>Hover Highlights</input>
-    <input id="animation_check" type="checkbox" checked>Animate</input>
+    <input id="animation_check" type="checkbox">Animate</input>
     <button type="button" onclick="OnScrambleButtonClicked()">Scramble!</button>
     <h2>Introduction</h2>
     <p>
@@ -42,6 +42,8 @@
     <p>
         The buttons up-top let you cycle through the various puzzles and images available.  A button below
         lets you scramble the current puzzle.  Notice that animation and hover-highlights can be toggled.
+        Admittedly, the animation is a bit annoying and silly.  I'm not yet sure how to interpolate the transforms
+        reasonably.
     </p>
     <h2>Group Theory</h2>
     <p>
