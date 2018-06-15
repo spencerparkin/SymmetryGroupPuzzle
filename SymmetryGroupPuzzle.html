@@ -31,13 +31,17 @@
         re-orient the shape in your hand, and then fit the shape back into the hole.  If we overlap a bunch of shapes
         in the plane, then we can get a larger group of transformations constructed from the individual symmetry groups
         of each shape.  Your job, given any element of this group, is to find a factorization of that element
-        in terms of a given set of generators.
+        in terms of the symmetries of the individual shapes (i.e., the generators of the group.)
     </p>
     <h2>Usage</h2>
     <p>
         The puzzle above is completely mouse driven.  Hovering over the desired shape, use the mouse wheel to
         rotate the shape clock-wise or counter-click-wise; or click on the shape to reflect it across an axis
-        near the location of the mouse cursor.  That's it!
+        near the location of the mouse cursor.  That's it!  Notice that if you click on or hover over an area
+        of a shape that overlaps with some other shape, then which shape is manipulated is determined by which
+        shape has the least amount of area.  If both shapes have the same amount of area, then the computer
+        chooses arbitrarily.  This isn't a problem as long as there is always a way to unambiguously choose
+        the desired shape.
     </p>
     <p>
         The buttons up-top let you cycle through the various puzzles and images available.  A button below
@@ -97,12 +101,13 @@
     <p>
         Implementing the above puzzle in Javascript was a challenge.  I went through a few different designs before
         landing on what I believe is the best solution.  The puzzles are pre-built by a Python script that takes
-        as input the shapes (generators) of the puzzle, and then outputs from that a set of pair-wise disjoint triangle meshes
+        as input the cut-shapes (generators) of the puzzle, and then outputs from that a set of pair-wise disjoint triangle meshes
         that fill the canvas.  These meshes are the moving parts of the puzzle, much like the cubies of a Rubik's Cube.
         An analogy is that the Python script takes as input the cut-planes and then cuts the cube to output the needed cubies.
         The client-side Javascript then needs only know how to move these pieces of the puzzle around.  It does this
-        by also receiving the original cut-shapes turned capture-shapes.  The capture shapes, when applied, capture all
-        meshes they cover, and then apply to those meshes a symmetry of the shape.  The implementation details can
+        by, in addition to the said meshes, also receiving the original cut-shapes now turned capture-shapes.  The capture shapes, when applied, capture all
+        meshes they cover, and then apply to those meshes a symmetry of the shape.  Naturally, the puzzle is in the solved
+        state whenever all local-to-world transforms of the triangle meshes are identity.  The implementation details can
         be found <a href="https://github.com/spencerparkin/SymmetryGroupPuzzle" target="_blank">here</a>.
     </p>
     <h2>Feedback</h2>
