@@ -1,0 +1,290 @@
+{
+    "mesh_list": [
+        {
+            "file": "Puzzle6_CaptureMesh0.json",
+            "symmetry_list": [
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -9.516197353929914e-17,
+                            "y": -1.0
+                        },
+                        "y_axis": {
+                            "x": 1.0,
+                            "y": -9.516197353929914e-17
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": 6.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -9.516197353929914e-17,
+                            "y": 1.0
+                        },
+                        "y_axis": {
+                            "x": -1.0,
+                            "y": -9.516197353929914e-17
+                        }
+                    },
+                    "translation": {
+                        "x": 5.999999999999999,
+                        "y": 8.881784197001252e-16
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 1.0,
+                            "y": -1.2688263138573217e-16
+                        },
+                        "y_axis": {
+                            "x": -1.2688263138573217e-16,
+                            "y": -1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": 6.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -2.220446049250313e-16,
+                            "y": -1.0
+                        },
+                        "y_axis": {
+                            "x": -1.0,
+                            "y": 2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": 6.0,
+                        "y": 5.999999999999998
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": 1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 6.0,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": 1.0
+                        },
+                        "y_axis": {
+                            "x": 1.0,
+                            "y": -2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": -4.440892098500626e-16,
+                        "y": 4.440892098500626e-16
+                    }
+                }
+            ],
+            "type": "capture_mesh"
+        },
+        {
+            "file": "Puzzle6_CaptureMesh1.json",
+            "symmetry_list": [
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.9032394707859833e-16,
+                            "y": -0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": 0.9999999999999998,
+                            "y": 3.172065784643298e-17
+                        }
+                    },
+                    "translation": {
+                        "x": -1.7763568394002505e-15,
+                        "y": -6.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.9032394707859833e-16,
+                            "y": 0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": -0.9999999999999998,
+                            "y": 3.172065784643298e-17
+                        }
+                    },
+                    "translation": {
+                        "x": -5.999999999999999,
+                        "y": -8.881784197001252e-16
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 1.0,
+                            "y": -2.5376526277146434e-16
+                        },
+                        "y_axis": {
+                            "x": -2.5376526277146434e-16,
+                            "y": -1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": -6.000000000000001
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -4.440892098500626e-16,
+                            "y": -0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": -0.9999999999999998,
+                            "y": 2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": -6.000000000000001,
+                        "y": -5.999999999999998
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.0,
+                            "y": 2.5376526277146434e-16
+                        },
+                        "y_axis": {
+                            "x": 2.5376526277146434e-16,
+                            "y": 1.0
+                        }
+                    },
+                    "translation": {
+                        "x": -5.999999999999999,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": 0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": 0.9999999999999998,
+                            "y": -4.440892098500626e-16
+                        }
+                    },
+                    "translation": {
+                        "x": 8.881784197001252e-16,
+                        "y": -3.1086244689504383e-15
+                    }
+                }
+            ],
+            "type": "capture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh0.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh1.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh2.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh3.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh4.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh5.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh6.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh7.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh8.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh9.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh10.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh11.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh12.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh13.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh14.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh15.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh16.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle6_PictureMesh17.json",
+            "type": "picture_mesh"
+        }
+    ],
+    "window": {
+        "max_point": {
+            "x": 11.000000000000002,
+            "y": 11.000000000000002
+        },
+        "min_point": {
+            "x": -11.000000000000002,
+            "y": -11.000000000000002
+        }
+    }
+}

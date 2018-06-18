@@ -518,7 +518,7 @@ var OnCanvasMouseMove = event => {
 
 var OnNewPuzzleButtonClicked = () => {
     puzzle_number += 1;
-    if(puzzle_number > 5)
+    if(puzzle_number > 7)
         puzzle_number = 1;
     let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
     puzzle.Promise(puzzle_file).then(() => {

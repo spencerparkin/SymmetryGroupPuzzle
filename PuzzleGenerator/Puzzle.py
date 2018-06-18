@@ -163,7 +163,7 @@ class Puzzle(object):
 
         # The desired meshes are now simply all of the empty cycles of the graph.
         print('Reading all empty cycles...')
-        polygon_list = graph.GeneratePolygonCycles(epsilon=0.01)
+        polygon_list = graph.GeneratePolygonCycles(epsilon=0.1)
         for polygon in polygon_list:
             polygon.Tessellate()
         
@@ -221,7 +221,7 @@ class DebugWindow(QtGui.QOpenGLWindow):
         height = viewport[3]
 
         aspect_ratio = float(width) / float(height)
-        extent = 9.0
+        extent = 12.0
 
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
