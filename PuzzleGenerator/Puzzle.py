@@ -20,6 +20,7 @@ class CutRegion(object):
     def __init__(self):
         self.region = None
         self.symmetry_list = []
+        self.permutation_list = []
     
     def GenerateSymmetryList(self):
         from math2d_point_cloud import PointCloud
@@ -130,6 +131,21 @@ class Puzzle(object):
         if preview == 'graph_post_cut':
             DebugDraw(graph)
 
+        # These can be used to generate a solution to the puzzle.
+        print('Generating permutations that generate the group...')
+        for cut_region in self.cut_region_list:
+            cut_region.permutation_list = []
+            for symmetry in cut_region.symmetry_list:
+                permutation = []
+                for i, point in enumerate(graph.vertex_list):
+                    if cut_region.region.ContainsPoint(point):
+                        point = symmetry * point
+                    j = graph.FindVertex(point)
+                    if j is None:
+                        raise Exception('Failed to generate permutation!')
+                    permutation.append(j)
+                cut_region.permutation_list.append(permutation)
+
         # Calculate a bounding rectangle for the graph, size it up a bit, then add it to the graph.
         print('Adding border...')
         rect = AxisAlignedRectangle()
@@ -184,7 +200,8 @@ class Puzzle(object):
             mesh_list.append({
                 'file': mesh_file,
                 'type': 'capture_mesh',
-                'symmetry_list': [symmetry.Serialize() for symmetry in cut_region.symmetry_list]
+                'symmetry_list': [symmetry.Serialize() for symmetry in cut_region.symmetry_list],
+                'permutation_list': [permutation for permutation in cut_region.permutation_list]
             })
         # A good draw-order is probably largest area to smallest area.
         polygon_list.sort(key=lambda polygon: polygon.Area(), reverse=True)
