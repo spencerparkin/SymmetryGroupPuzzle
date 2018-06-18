@@ -102,3 +102,10 @@ ENV/
 
 # PyCharm
 .idea/
+
+# DevStudio
+SolutionGenerator/.vs/
+SolutionGenerator/Debug/
+SolutionGenerator/Release/
+SolutionGenerator/*.user
+SolutionGenerator/*.filters
