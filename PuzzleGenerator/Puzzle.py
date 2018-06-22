@@ -57,6 +57,10 @@ class Puzzle(object):
     def Name(self):
         return ''
     
+    def SolveProgress(self, unnamed_transversal_count):
+        print('Remaining transversal elements: %d' % unnamed_transversal_count)
+        return False
+    
     def Generate(self, puzzle_folder, calc_solution, preview=None):
         
         # TODO: It would be way rad if I could also generate here a permutation group (in terms
@@ -159,6 +163,7 @@ class Puzzle(object):
             stab_chain.generate(generator_list, base_array)
             order = stab_chain.order()
             print('Group order = %d' % order)
+            stab_chain.solve(self.SolveProgress)
             
             # If no exception was thrown to this point, we succeeded.  Splat the stab-chain.
             stab_chain_file = puzzle_folder + '/' + self.Name() + '_StabChain.json'
