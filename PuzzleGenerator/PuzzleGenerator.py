@@ -22,6 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('--puzzle', help='Which puzzle to generate.  All are generated if not given.', type=str)
     parser.add_argument('--puzzle_folder', help='Where to dump puzzle files.', type=str)
     parser.add_argument('--preview', help='This is used for debugging purposes.', type=str)
+    parser.add_argument('--solve', help='If true, try to generate a solution to the puzzle in the form of a stab-chain.', action='store_true')
     
     args = parser.parse_args()
     
@@ -34,4 +35,4 @@ if __name__ == '__main__':
             continue
         print('=======================================================================')
         print('Processing: ' + puzzle.Name())
-        puzzle.Generate(puzzle_folder, args.preview)
+        puzzle.Generate(puzzle_folder, args.solve, args.preview)

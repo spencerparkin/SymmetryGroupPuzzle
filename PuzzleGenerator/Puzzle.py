@@ -3,11 +3,11 @@
 import sys
 import random
 import json
-import math
 
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from PyQt5 import QtGui, QtCore, QtWidgets
+from PyPermGroup import Perm, StabChain
+#from OpenGL.GL import *
+#from OpenGL.GLU import *
+#from PyQt5 import QtGui, QtCore, QtWidgets
 from math2d_region import Region, SubRegion
 from math2d_planar_graph import PlanarGraph
 from math2d_aa_rect import AxisAlignedRectangle
@@ -57,7 +57,7 @@ class Puzzle(object):
     def Name(self):
         return ''
     
-    def Generate(self, puzzle_folder, preview=None):
+    def Generate(self, puzzle_folder, calc_solution, preview=None):
         
         # TODO: It would be way rad if I could also generate here a permutation group (in terms
         #       of some generators) that models the puzzle, and then output a stabilizer chain
@@ -133,6 +133,7 @@ class Puzzle(object):
 
         # These can be used to generate a solution to the puzzle.
         print('Generating permutations that generate the group...')
+        generator_list = []
         for cut_region in self.cut_region_list:
             cut_region.permutation_list = []
             for symmetry in cut_region.symmetry_list:
@@ -145,6 +146,26 @@ class Puzzle(object):
                         raise Exception('Failed to generate permutation!')
                     permutation.append(j)
                 cut_region.permutation_list.append(permutation)
+                generator_list.append(Perm(permutation))
+
+        # If asked, try to find a stab-chain that can be used to solve the puzzle.
+        if calc_solution:
+            # This is not necessarily the best base for solving the puzzle.
+            base_array = [i for i in range(len(graph.vertex_list))]
+    
+            # Try to generate a solution.
+            print('Generating stab-chain...')
+            stab_chain = StabChain()
+            stab_chain.generate(generator_list, base_array)
+            order = stab_chain.order()
+            print('Group order = %d' % order)
+            
+            # If no exception was thrown to this point, we succeeded.  Splat the stab-chain.
+            stab_chain_file = puzzle_folder + '/' + self.Name() + '_StabChain.json'
+            with open(stab_chain_file, 'w') as handle:
+                json_data = stab_chain.to_json()
+                json_data = json_data.decode('utf-8')
+                handle.write(json_data)
 
         # Calculate a bounding rectangle for the graph, size it up a bit, then add it to the graph.
         print('Adding border...')
@@ -220,7 +241,7 @@ class Puzzle(object):
                 'window': rect.Serialize()
             }, sort_keys=True, indent=4, separators=(',', ': ')))
 
-class DebugWindow(QtGui.QOpenGLWindow):
+'''class DebugWindow(QtGui.QOpenGLWindow):
     def __init__(self, parent=None, object=None):
         super().__init__(parent)
         self.object = object
@@ -274,4 +295,4 @@ def DebugDraw(object):
     win.show()
     
     result = app.exec_()
-    sys.exit(result)
+    sys.exit(result)'''
