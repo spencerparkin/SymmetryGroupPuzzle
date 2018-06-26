@@ -576,4 +576,6 @@ var OnIntervalHit = () => {
     }
 }
 
+// TODO: When animate checked, copy all local-to-world transforms to animation transforms.
+
 $(document).ready(OnDocumentReady);
