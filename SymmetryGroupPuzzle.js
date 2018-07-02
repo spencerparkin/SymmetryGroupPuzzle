@@ -101,11 +101,11 @@ class Puzzle {
         }
     }
     
-    AdvanceAnimation() {
+    AdvanceAnimation(snap=false) {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.type === 'picture_mesh')
-                mesh.AdvanceAnimation()
+                mesh.AdvanceAnimation(snap)
         }
     }
     
@@ -266,50 +266,54 @@ class Mesh {
         return false;
     }
     
-    AdvanceAnimation() {
-        let lerp = 0.2; // TODO: This really should be based on frame-rate.
-        
-        let anim_x_axis = vec2.create();
-        let anim_y_axis = vec2.create();
-        
-        vec2.set(anim_x_axis, this.anim_local_to_world[0], this.anim_local_to_world[1]);
-        vec2.set(anim_y_axis, this.anim_local_to_world[3], this.anim_local_to_world[4]);
-        
-        let target_x_axis = vec2.create();
-        let target_y_axis = vec2.create();
-        
-        vec2.set(target_x_axis, this.local_to_world[0], this.local_to_world[1]);
-        vec2.set(target_y_axis, this.local_to_world[3], this.local_to_world[4]);
-        
-        anim_x_axis = this.Slerp(anim_x_axis, target_x_axis, lerp);
-        anim_y_axis = this.Slerp(anim_y_axis, target_y_axis, lerp);
-        
-        let center0 = vec2.create();
-        let center1 = vec2.create();
-        
-        vec2.transformMat3(center0, this.center, this.anim_local_to_world);
-        vec2.transformMat3(center1, this.center, this.local_to_world);
-        
-        let interpolated_center = vec2.create();
-        vec2.lerp(interpolated_center, center0, center1, lerp);
-        
-        let interpolated_orient = mat2.create();
-        interpolated_orient[0] = anim_x_axis[0];
-        interpolated_orient[1] = anim_x_axis[1];
-        interpolated_orient[2] = anim_y_axis[0];
-        interpolated_orient[3] = anim_y_axis[1];
-        
-        let anim_translation = vec2.create();
-        vec2.transformMat2(anim_translation, this.center, interpolated_orient);
-        vec2.scale(anim_translation, anim_translation, -1.0);
-        vec2.add(anim_translation, anim_translation, interpolated_center);
-        
-        this.anim_local_to_world[0] = anim_x_axis[0];
-        this.anim_local_to_world[1] = anim_x_axis[1];
-        this.anim_local_to_world[3] = anim_y_axis[0];
-        this.anim_local_to_world[4] = anim_y_axis[1];
-        this.anim_local_to_world[6] = anim_translation[0];
-        this.anim_local_to_world[7] = anim_translation[1];
+    AdvanceAnimation(snap=false) {
+        if(snap) {
+            mat3.copy(this.anim_local_to_world, this.local_to_world);
+        } else {
+            let lerp = 0.2; // TODO: This really should be based on frame-rate.
+            
+            let anim_x_axis = vec2.create();
+            let anim_y_axis = vec2.create();
+            
+            vec2.set(anim_x_axis, this.anim_local_to_world[0], this.anim_local_to_world[1]);
+            vec2.set(anim_y_axis, this.anim_local_to_world[3], this.anim_local_to_world[4]);
+            
+            let target_x_axis = vec2.create();
+            let target_y_axis = vec2.create();
+            
+            vec2.set(target_x_axis, this.local_to_world[0], this.local_to_world[1]);
+            vec2.set(target_y_axis, this.local_to_world[3], this.local_to_world[4]);
+            
+            anim_x_axis = this.Slerp(anim_x_axis, target_x_axis, lerp);
+            anim_y_axis = this.Slerp(anim_y_axis, target_y_axis, lerp);
+            
+            let center0 = vec2.create();
+            let center1 = vec2.create();
+            
+            vec2.transformMat3(center0, this.center, this.anim_local_to_world);
+            vec2.transformMat3(center1, this.center, this.local_to_world);
+            
+            let interpolated_center = vec2.create();
+            vec2.lerp(interpolated_center, center0, center1, lerp);
+            
+            let interpolated_orient = mat2.create();
+            interpolated_orient[0] = anim_x_axis[0];
+            interpolated_orient[1] = anim_x_axis[1];
+            interpolated_orient[2] = anim_y_axis[0];
+            interpolated_orient[3] = anim_y_axis[1];
+            
+            let anim_translation = vec2.create();
+            vec2.transformMat2(anim_translation, this.center, interpolated_orient);
+            vec2.scale(anim_translation, anim_translation, -1.0);
+            vec2.add(anim_translation, anim_translation, interpolated_center);
+            
+            this.anim_local_to_world[0] = anim_x_axis[0];
+            this.anim_local_to_world[1] = anim_x_axis[1];
+            this.anim_local_to_world[3] = anim_y_axis[0];
+            this.anim_local_to_world[4] = anim_y_axis[1];
+            this.anim_local_to_world[6] = anim_translation[0];
+            this.anim_local_to_world[7] = anim_translation[1];
+        }
     }
     
     Slerp(normal_a, normal_b, lerp) {
@@ -557,6 +561,10 @@ var OnScrambleButtonClicked = () => {
     }
 }
 
+var OnAnimationToggleClicked = () => {
+    puzzle.AdvanceAnimation(true);
+}
+
 var settle_render = false;
 var OnIntervalHit = () => {
     if(puzzle.AnimationSettled()) {
@@ -575,7 +583,5 @@ var OnIntervalHit = () => {
         settle_render = true;
     }
 }
-
-// TODO: When animate checked, copy all local-to-world transforms to animation transforms.
 
 $(document).ready(OnDocumentReady);
