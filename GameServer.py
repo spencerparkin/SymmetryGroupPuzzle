@@ -11,7 +11,7 @@ class GameServer(object):
     def default(self, **kwargs):
         return cherrypy.lib.static.serve_file(root_dir + '/SymmetryGroupPuzzle.html', content_type='text/html')
 
-    # TODO: Expose request to know if puzzle is solvable.  It is if a stab-chain file exists and it fully worded.
+    # TODO: Expose request to know if puzzle is solvable.  It is if a stab-chain file exists and is fully worded.
     # TODO: Expose request to solve a given permutation for a given puzzle.  Just return a list of permutations.
     #       The JS code can translate this into a sequence of moves.  The JS code can also keep track of the current
     #       permutation by multiplying permutations.

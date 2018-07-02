@@ -9,6 +9,7 @@ class Puzzle {
         this.window_max_point = vec2.create();
         this.highlight_mesh = -1;
         this.move_queue = [];
+        this.permutation = [];
     }
     
     Promise(source) {
@@ -31,6 +32,9 @@ class Puzzle {
                         mesh_promise_list.push(mesh.Promise('Puzzles/' + mesh_data.file));
                     });
                     Promise.all(mesh_promise_list).then(() => {
+                        this.permutation = [];
+                        // TODO: Uncomment this when ready.  For now, there appears to be a bug in the permutation tracking code.
+                        //this.QueueScrambleMoves(50);
                         resolve();
                     });
                 },
@@ -119,10 +123,61 @@ class Puzzle {
                 // TODO: Re-orthonormalize the mesh transform here to combat accumulated round-off error?
             }
         }
+        
+        let symmetry_perm = capture_mesh.perm_list[move[1]];
+        this.permutation = this.MultiplyPerms(this.permutation, symmetry_perm);
     }
     
-    IsSolved() {
-        // TODO: Check that all mesh local-to-world matrices are the identity.
+    QueueScrambleMoves(count) {
+        let capture_mesh_list = [];
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.type === 'capture_mesh')
+                capture_mesh_list.push(i);
+        }
+        let last_j = -1;
+        for(let i = 0; i < count; i++) {
+            let j = 0;
+            do {
+                j = Math.floor(Math.random() * capture_mesh_list.length);
+            } while(j === last_j);
+            last_j = j;
+            j = capture_mesh_list[j];
+            let mesh = this.mesh_list[j];
+            let k = Math.floor(Math.random() * mesh.symmetry_list.length);
+            this.move_queue.push([j, k]);
+        }
+    }
+    
+    MultiplyPerms(perm_a, perm_b) {
+        let size = perm_a.length > perm_b.length ? perm_a.length : perm_b.length;
+        let new_perm = [];
+        for(let i = 0; i < size; i++) {
+            let j = i < perm_b.length ? perm_b[i] : i;
+            let k = j < perm_a.length ? perm_a[j] : j;
+            new_perm.push(k);
+        }
+        return new_perm;
+    }
+    
+    IsSolved(sanity_check=true) {
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.type === 'picture_mesh' && !mesh.IsSolved())
+                return false;
+        }
+        
+        if(sanity_check) {
+            for(let i = 0; i < this.permutation.length; i++) {
+                let j = this.permutation[i];
+                if(i !== j) {
+                    alert('Puzzle physically solved, but we are not at the identity permutation!')
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     }
 
     CalcMouseLocation(event) {
@@ -186,6 +241,9 @@ class Mesh {
                 this.symmetry_list.push(transform);
             }
         }
+        if('permutation_list' in mesh_data) {
+            this.perm_list = mesh_data['permutation_list'];
+        }
     }
 
     ReleaseBuffers() {
@@ -246,6 +304,18 @@ class Mesh {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
         
         gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
+    }
+    
+    IsSolved() {
+        let eps = 0.001;
+        for(let i = 0; i < 9; i++) {
+            let value = 0.0;
+            if(i === 0 || i === 4 || i === 8)
+                value = 1.0;
+            if(Math.abs(this.local_to_world[i] - value) >= eps)
+                return false;
+        }
+        return true;
     }
     
     AnimationSettled() {
@@ -540,25 +610,12 @@ var OnNewImageButtonClicked = () => {
 }
 
 var OnScrambleButtonClicked = () => {
-    let capture_mesh_list = [];
-    for(let i = 0; i < puzzle.mesh_list.length; i++) {
-        let mesh = puzzle.mesh_list[i];
-        if(mesh.type === 'capture_mesh')
-            capture_mesh_list.push(i);
-    }
-    let count = 30; // TODO: Maybe get this from a control?
-    let last_j = -1;
-    for(let i = 0; i < count; i++) {
-        let j = 0;
-        do {
-            j = Math.floor(Math.random() * capture_mesh_list.length);
-        } while(j === last_j);
-        last_j = j;
-        j = capture_mesh_list[j];
-        let mesh = puzzle.mesh_list[j];
-        let k = Math.floor(Math.random() * mesh.symmetry_list.length);
-        puzzle.move_queue.push([j, k]);
-    }
+    puzzle.QueueScrambleMoves(30);
+}
+
+var OnSolveButtonClicked = () => {
+    // TODO: Write this.  Make a request to the server.  Give our permutation.
+    //       Expect back a sequence of permutations that we can translate into a move sequence.
 }
 
 var OnAnimationToggleClicked = () => {
@@ -576,6 +633,11 @@ var OnIntervalHit = () => {
             let move = puzzle.move_queue.pop();
             puzzle.ApplyMove(move);
             puzzle.Render();
+            if(puzzle.IsSolved()) {
+                $('#puzzle_name').text('Puzzle ' + puzzle_number.toString() + ' solved!');
+            } else {
+                $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
+            }
         }
     } else {
         puzzle.AdvanceAnimation();
