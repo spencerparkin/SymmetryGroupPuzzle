@@ -498,8 +498,8 @@ var OnCanvasMouseWheel = event => {
     let i = puzzle.FindCaptureMeshContainingPoint(location);
     if(i >= 0) {
         let mesh = puzzle.mesh_list[i];
-        // The first two symmetries are always CCW/CW rotations, repsectively.
-        let j = event.wheelDeltaY < 0 ? 1 : 0;
+        // The first two symmetries are always CCW/CW rotations, respectively.
+        let j = event.deltaY > 0 ? 1 : 0;
         puzzle.move_queue.push([i, j]);
         event.preventDefault();
     }
