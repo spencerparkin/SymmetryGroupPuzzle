@@ -12,6 +12,29 @@ class Puzzle {
         this.permutation = [];
     }
     
+    PromiseComputerCanSolve(puzzle_number) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: 'computer_can_solve',
+                dataType: 'json',
+                data: {'puzzle_number': puzzle_number},
+                contentType: 'application/json',
+                type: 'GET',
+                success: json_data => {
+                    if(json_data['computer_can_solve'])
+                        $('#solve_button').show();
+                    else
+                        $('#solve_button').hide();
+                    resolve();
+                },
+                failure: error => {
+                    alert(error);
+                    reject();
+                }
+            });
+        });
+    }
+    
     Promise(source) {
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -530,6 +553,7 @@ var OnDocumentReady = () => {
 
         Promise.all([
             puzzle.Promise('Puzzles/Puzzle' + puzzle_number.toString() + '.json'),
+            puzzle.PromiseComputerCanSolve(puzzle_number),
             PromiseShaderProgram(mesh_shader_program),
             PromiseTexture(picture_mesh_texture)
         ]).then(() => {
@@ -594,7 +618,10 @@ var OnNewPuzzleButtonClicked = () => {
     if(puzzle_number > 7)
         puzzle_number = 1;
     let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
-    puzzle.Promise(puzzle_file).then(() => {
+    Promise.all([
+        puzzle.Promise(puzzle_file),
+        puzzle.PromiseComputerCanSolve(puzzle_number)
+    ]).then(() => {
         puzzle.Render();
         $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
     });
