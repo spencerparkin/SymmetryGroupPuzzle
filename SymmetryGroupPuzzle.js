@@ -125,7 +125,7 @@ class Puzzle {
         }
         
         let symmetry_perm = capture_mesh.perm_list[move[1]];
-        this.permutation = this.MultiplyPerms(this.permutation, symmetry_perm);
+        this.permutation = this.MultiplyPerms(symmetry_perm, this.permutation);
     }
     
     QueueScrambleMoves(count) {
