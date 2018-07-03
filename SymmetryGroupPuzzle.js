@@ -35,6 +35,25 @@ class Puzzle {
         });
     }
     
+    PromiseComputerSolve(puzzle_number) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: 'computer_solve',
+                dataType: 'json',
+                data: {'puzzle_number': puzzle_number, 'permutation': this.permutation},
+                contentType: 'application/json',
+                type: 'GET',
+                success: json_data => {
+                    resolve(json_data);
+                },
+                failure: error => {
+                    alert(error);
+                    reject();
+                }
+            });
+        });
+    }
+    
     Promise(source) {
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -168,6 +187,26 @@ class Puzzle {
             let mesh = this.mesh_list[j];
             let k = Math.floor(Math.random() * mesh.symmetry_list.length);
             this.move_queue.push([j, k]);
+        }
+    }
+    
+    QueueSolutionMoves(puzzle_number) {
+        this.FlushMoveQueue();
+        this.PromiseComputerSolve(puzzle_number).then(results => {
+            // TODO: Process results here into a move sequence, but first ask user if they want that.
+            let x = results[0];
+            x = null;
+        });
+    }
+    
+    ProcessNextMove() {
+        let move = this.move_queue.pop();
+        this.ApplyMove(move);
+    }
+    
+    FlushMoveQueue() {
+        while(this.move_queue.length > 0) {
+            this.ProcessNextMove();
         }
     }
     
@@ -640,8 +679,7 @@ var OnScrambleButtonClicked = () => {
 }
 
 var OnSolveButtonClicked = () => {
-    // TODO: Write this.  Make a request to the server.  Give our permutation.
-    //       Expect back a sequence of permutations that we can translate into a move sequence.
+    puzzle.QueueSolutionMoves(puzzle_number);
 }
 
 var OnAnimationToggleClicked = () => {
@@ -656,8 +694,7 @@ var OnIntervalHit = () => {
             puzzle.Render();
         }
         if(puzzle.move_queue.length > 0) {
-            let move = puzzle.move_queue.pop();
-            puzzle.ApplyMove(move);
+            puzzle.ProcessNextMove();
             puzzle.Render();
             if(puzzle.IsSolved()) {
                 $('#puzzle_name').text('Puzzle ' + puzzle_number.toString() + ' solved!');

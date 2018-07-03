@@ -41,7 +41,8 @@ class GameServer(object):
             puzzle_number = int(kwargs['puzzle_number'])
             stab_chain = self._load_stab_chain(puzzle_number)
             permutation = Perm()
-            permutation.from_array(kwargs['permutation'])
+            perm_array = [int(point) for point in kwargs['permutation[]']]
+            permutation.from_array(perm_array)
             inv_permutation = stab_chain.factor(permutation)
             generator_list = stab_chain.generators()
             data = {
