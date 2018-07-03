@@ -33,8 +33,7 @@ class Puzzle {
                     });
                     Promise.all(mesh_promise_list).then(() => {
                         this.permutation = [];
-                        // TODO: Uncomment this when ready.  For now, there appears to be a bug in the permutation tracking code.
-                        //this.QueueScrambleMoves(50);
+                        this.QueueScrambleMoves(50);
                         resolve();
                     });
                 },
