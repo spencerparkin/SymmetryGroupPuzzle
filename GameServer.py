@@ -3,8 +3,6 @@
 import os
 import cherrypy
 
-from PyPermGroup import Perm, StabChain
-
 class GameServer(object):
     def __init__(self, root_dir):
         self.root_dir = root_dir
@@ -13,7 +11,8 @@ class GameServer(object):
     def default(self, **kwargs):
         return cherrypy.lib.static.serve_file(root_dir + '/SymmetryGroupPuzzle.html', content_type='text/html')
 
-    def LoadStabChain(self, puzzle_number):
+    def _load_stab_chain(self, puzzle_number):
+        from PyPermGroup import StabChain
         stab_chain_file = 'Puzzles/Puzzle%d_StabChain.json' % puzzle_number
         with open(stab_chain_file, 'r') as handle:
             json_text = handle.read()
@@ -27,16 +26,31 @@ class GameServer(object):
         computer_can_solve = False
         try:
             puzzle_number = int(kwargs['puzzle_number'])
-            stab_chain = self.LoadStabChain(puzzle_number)
+            stab_chain = self._load_stab_chain(puzzle_number)
             if stab_chain.worded():
                 computer_can_solve = True
         except:
             pass
         return {'computer_can_solve': computer_can_solve}
 
-    # TODO: Expose request to solve a given permutation for a given puzzle.  Just return a list of permutations.
-    #       The JS code can translate this into a sequence of moves.  The JS code can also keep track of the current
-    #       permutation by multiplying permutations.
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def computer_solve(self, **kwargs):
+        try:
+            from PyPermGroup import Perm
+            puzzle_number = int(kwargs['puzzle_number'])
+            stab_chain = self._load_stab_chain(puzzle_number)
+            permutation = Perm()
+            permutation.from_array(kwargs['permutation'])
+            inv_permutation = stab_chain.factor(permutation)
+            generator_list = stab_chain.generators()
+            data = {
+                'inv_permutation': inv_permutation.to_json(),
+                'generator_list': [generator.to_json() for generator in generator_list]
+            }
+            return data
+        except Exception as ex:
+            return {'error': str(ex)}
 
 if __name__ == '__main__':
     root_dir = os.path.dirname(os.path.abspath(__file__))
