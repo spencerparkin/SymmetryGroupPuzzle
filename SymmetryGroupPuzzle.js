@@ -192,10 +192,49 @@ class Puzzle {
     
     QueueSolutionMoves(puzzle_number) {
         this.FlushMoveQueue();
-        this.PromiseComputerSolve(puzzle_number).then(results => {
-            // TODO: Process results here into a move sequence, but first ask user if they want that.
-            let x = results[0];
-            x = null;
+        this.PromiseComputerSolve(puzzle_number).then(json_data => {
+            let move_map = {};
+            for(let i = 0; i < json_data['generator_list'].length; i++) {
+                let generator = json_data['generator_list'][i];
+                let found = false;
+                for(let j = 0; j < this.mesh_list.length; j++) {
+                    let mesh = this.mesh_list[j];
+                    if(mesh.type !== 'capture_mesh')
+                        continue;
+                    for(let k = 0; k < mesh.perm_list.length; k++) {
+                        let perm = mesh.perm_list[k];
+                        if(this.EqualPerms(perm, generator['map'])) {
+                            move_map[generator['word'][0]['name']] = [j, k];
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(found)
+                        break;
+                }
+                if(!found) {
+                    alert('Error!  Generator permutation not found.');
+                    return;
+                }
+            }
+            let inv_perm = json_data['inv_permutation'];
+            let move_sequence = [];
+            for(let i = 0; i < inv_perm['word'].length; i++) {
+                let element = inv_perm['word'][i];
+                for(let j = 0; j < Math.abs(element['exponent']); j++) {
+                    let move = move_map[element['name']];
+                    // Reflections are their own inverse.  The only 2 rotations (the first two)
+                    // are inverses of one another, so we can easily invert the move here.
+                    if(element['exponent'] < 0 && move[1] < 2) {
+                        move = [move[0], 1 - move[1]];
+                    }
+                    move_sequence.push(move);
+                }
+            }
+            let count = move_sequence.length;
+            if(confirm('The computer found a solution with ' + count.toString() + ' moves.  Show solution sequence?')) {
+                this.move_queue = this.move_queue.concat(move_sequence);
+            }
         });
     }
     
@@ -210,15 +249,31 @@ class Puzzle {
         }
     }
     
+    EvalPerm(perm, input) {
+        let output = input < perm.length ? perm[input] : input;
+        return output;
+    }
+    
     MultiplyPerms(perm_a, perm_b) {
         let size = perm_a.length > perm_b.length ? perm_a.length : perm_b.length;
         let new_perm = [];
         for(let i = 0; i < size; i++) {
-            let j = i < perm_b.length ? perm_b[i] : i;
-            let k = j < perm_a.length ? perm_a[j] : j;
+            let j = this.EvalPerm(perm_b, i);
+            let k = this.EvalPerm(perm_a, j);
             new_perm.push(k);
         }
         return new_perm;
+    }
+    
+    EqualPerms(perm_a, perm_b) {
+        let size = perm_a.length > perm_b.length ? perm_a.length : perm_b.length;
+        for(let i = 0; i < size; i++) {
+            let j = this.EvalPerm(perm_a, i);
+            let k = this.EvalPerm(perm_b, i);
+            if(j !== k)
+                return false;
+        }
+        return true;
     }
     
     IsSolved(sanity_check=true) {

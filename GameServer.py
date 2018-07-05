@@ -2,6 +2,7 @@
 
 import os
 import cherrypy
+import json
 
 class GameServer(object):
     def __init__(self, root_dir):
@@ -46,8 +47,8 @@ class GameServer(object):
             inv_permutation = stab_chain.factor(permutation)
             generator_list = stab_chain.generators()
             data = {
-                'inv_permutation': inv_permutation.to_json(),
-                'generator_list': [generator.to_json() for generator in generator_list]
+                'inv_permutation': json.loads(inv_permutation.to_json()),
+                'generator_list': [json.loads(generator.to_json()) for generator in generator_list]
             }
             return data
         except Exception as ex:
