@@ -1,0 +1,5 @@
+[requires]
+python_full_version = "3.5.3"
+
+[packages]
+cherrypy = "==3.8.0"
