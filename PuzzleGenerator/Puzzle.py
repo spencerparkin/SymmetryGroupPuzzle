@@ -4,10 +4,12 @@ import sys
 import random
 import json
 
+sys.path.append(r'C:\dev\SymmetryGroupPuzzle')
+
 from PyPermGroup import Perm, StabChain
-#from OpenGL.GL import *
-#from OpenGL.GLU import *
-#from PyQt5 import QtGui, QtCore, QtWidgets
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from PyQt5 import QtGui, QtCore, QtWidgets
 from math2d_region import Region, SubRegion
 from math2d_planar_graph import PlanarGraph
 from math2d_aa_rect import AxisAlignedRectangle
@@ -15,6 +17,7 @@ from math2d_vector import Vector
 from math2d_affine_transform import AffineTransform
 from math2d_linear_transform import LinearTransform
 from math2d_line_segment import LineSegment
+from math2d_point_cloud import PointCloud
 
 class CutRegion(object):
     def __init__(self):
@@ -142,16 +145,22 @@ class Puzzle(object):
             DebugDraw(graph)
 
         # These can be used to generate a solution to the puzzle.
+        # It's not entirely clear to me if adding mid-points of segments insures that
+        # we're solving more than just a homomorphic image of the puzzle's group.
         print('Generating permutations that generate the group...')
+        cloud = PointCloud()
+        cloud.Add(graph)
+        for edge in graph.GenerateEdgeSegments():
+            cloud.Add(edge.Lerp(0.5))
         generator_list = []
         for cut_region in self.cut_region_list:
             cut_region.permutation_list = []
             for symmetry in cut_region.symmetry_list:
                 permutation = []
-                for i, point in enumerate(graph.vertex_list):
+                for i, point in enumerate(cloud.point_list):
                     if cut_region.region.ContainsPoint(point):
                         point = symmetry * point
-                    j = graph.FindVertex(point)
+                    j = cloud.FindPoint(point)
                     if j is None:
                         raise Exception('Failed to generate permutation!')
                     permutation.append(j)
@@ -161,7 +170,7 @@ class Puzzle(object):
         # If asked, try to find a stab-chain that can be used to solve the puzzle.
         if calc_solution:
             # This is not necessarily the best base for solving the puzzle.
-            base_array = [i for i in range(len(graph.vertex_list))]
+            base_array = [i for i in range(len(cloud.point_list))]
     
             # Try to generate a solution.
             print('Generating stab-chain...')
@@ -175,7 +184,6 @@ class Puzzle(object):
             stab_chain_file = puzzle_folder + '/' + self.Name() + '_StabChain.json'
             with open(stab_chain_file, 'w') as handle:
                 json_data = stab_chain.to_json()
-                json_data = json_data.decode('utf-8')
                 handle.write(json_data)
 
         # Calculate a bounding rectangle for the graph, size it up a bit, then add it to the graph.
@@ -252,7 +260,7 @@ class Puzzle(object):
                 'window': rect.Serialize()
             }, sort_keys=True, indent=4, separators=(',', ': ')))
 
-'''class DebugWindow(QtGui.QOpenGLWindow):
+class DebugWindow(QtGui.QOpenGLWindow):
     def __init__(self, parent=None, object=None):
         super().__init__(parent)
         self.object = object
@@ -306,4 +314,4 @@ def DebugDraw(object):
     win.show()
     
     result = app.exec_()
-    sys.exit(result)'''
+    sys.exit(result)
