@@ -191,8 +191,10 @@ class Puzzle {
     }
     
     QueueSolutionMoves(puzzle_number) {
+        $('body').css('cursor', 'progress');
         this.FlushMoveQueue();
         this.PromiseComputerSolve(puzzle_number).then(json_data => {
+            $('body').css('cursor', 'default');
             let move_map = {};
             for(let i = 0; i < json_data['generator_list'].length; i++) {
                 let generator = json_data['generator_list'][i];
@@ -237,7 +239,7 @@ class Puzzle {
                 }
             }
             let count = move_sequence.length;
-            if(confirm('The computer found a solution with ' + count.toString() + ' moves.  Show solution sequence?')) {
+            if(confirm('The computer found a solution with ' + count.toString() + ' move(s).  Show solution sequence?')) {
                 this.move_queue = this.move_queue.concat(move_sequence);
             }
         });
