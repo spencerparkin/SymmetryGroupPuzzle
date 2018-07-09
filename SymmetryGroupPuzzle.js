@@ -218,8 +218,13 @@ class Puzzle {
                 }
             }
             let inv_perm = json_data['inv_permutation'];
+            let identity = this.MultiplyPerms(this.permutation, inv_perm['map']);
+            if(!this.IsIdentityPerm(identity)) {
+                alert('Solve failed!');
+                return;
+            }
             let move_sequence = [];
-            for(let i = 0; i < inv_perm['word'].length; i++) {
+            for(let i = inv_perm['word'].length - 1; i >= 0; i--) {
                 let element = inv_perm['word'][i];
                 for(let j = 0; j < Math.abs(element['exponent']); j++) {
                     let move = move_map[element['name']];
@@ -276,6 +281,15 @@ class Puzzle {
         return true;
     }
     
+    IsIdentityPerm(perm) {
+        for(let i = 0; i < perm.length; i++) {
+            let j = perm[i];
+            if(i !== j)
+                return false;
+        }
+        return true;
+    }
+    
     IsSolved(sanity_check=true) {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
@@ -283,14 +297,9 @@ class Puzzle {
                 return false;
         }
         
-        if(sanity_check) {
-            for(let i = 0; i < this.permutation.length; i++) {
-                let j = this.permutation[i];
-                if(i !== j) {
-                    alert('Puzzle physically solved, but we are not at the identity permutation!')
-                    return false;
-                }
-            }
+        if(sanity_check && !this.IsIdentityPerm(this.permutation)) {
+            alert('Puzzle physically solved, but we are not at the identity permutation!')
+            return false;
         }
         
         return true;
