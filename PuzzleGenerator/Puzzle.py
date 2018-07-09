@@ -149,9 +149,9 @@ class Puzzle(object):
         # we're solving more than just a homomorphic image of the puzzle's group.
         print('Generating permutations that generate the group...')
         cloud = PointCloud()
-        cloud.Add(graph)
         for edge in graph.GenerateEdgeSegments():
             cloud.Add(edge.Lerp(0.5))
+        cloud.Add(graph)
         generator_list = []
         for cut_region in self.cut_region_list:
             cut_region.permutation_list = []
