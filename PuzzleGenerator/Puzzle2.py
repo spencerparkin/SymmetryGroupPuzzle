@@ -9,7 +9,7 @@ class Puzzle2(Puzzle):
         super().__init__()
 
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(4, 2.0)
+        cut_region.GenerateRegularPolygon(4, 3.0)
         self.cut_region_list.append(cut_region)
 
         cut_region = CutRegion()
