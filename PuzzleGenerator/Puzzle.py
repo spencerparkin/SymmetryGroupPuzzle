@@ -70,6 +70,10 @@ class Puzzle(object):
             return True # After some time, give up.
         return False
     
+    def PopulatePointCloudForPermutationGroup(self):
+        # Some puzzles can give a better set of points to use for generating the associated group.
+        return False
+    
     def Generate(self, puzzle_folder, calc_solution, preview=None):
                
         # Go calculate all the needed symmetries of the cut-shape.
@@ -138,14 +142,15 @@ class Puzzle(object):
         if preview == 'graph_post_cut':
             DebugDraw(graph)
 
-        # These can be used to generate a solution to the puzzle.
-        # It's not entirely clear to me if adding mid-points of segments insures that
-        # we're solving more than just a homomorphic image of the puzzle's group.
+        # This can be used to generate a solution to the puzzle.
         print('Generating permutations that generate the group...')
         cloud = PointCloud()
-        for edge in graph.GenerateEdgeSegments():
-            cloud.Add(edge.Lerp(0.5))
-        cloud.Add(graph)
+        if not self.PopulatePointCloudForPermutationGroup():
+            # It's not entirely clear to me if adding mid-points of segments insures that
+            # we're solving more than just a homomorphic image of the puzzle's group.
+            for edge in graph.GenerateEdgeSegments():
+                cloud.Add(edge.Lerp(0.5))
+            cloud.Add(graph)
         generator_list = []
         for cut_region in self.cut_region_list:
             cut_region.permutation_list = []
