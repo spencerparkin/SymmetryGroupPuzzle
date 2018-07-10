@@ -44,7 +44,7 @@ class GameServer(object):
             permutation = Perm()
             perm_array = [int(point) for point in kwargs['permutation[]']]
             permutation.from_array(perm_array)
-            inv_permutation = stab_chain.factor(permutation)
+            inv_permutation = stab_chain.factor(permutation, True)
             generator_list = stab_chain.generators()
             data = {
                 'inv_permutation': json.loads(inv_permutation.to_json()),
