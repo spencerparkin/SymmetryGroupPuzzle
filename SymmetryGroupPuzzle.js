@@ -301,6 +301,8 @@ class Puzzle {
         }
         
         if(sanity_check && !this.IsIdentityPerm(this.permutation)) {
+            // When this happens, it can mean that the real group of the puzzle is a factor
+            // group of the group that we computed for the puzzle.
             alert('Puzzle physically solved, but we are not at the identity permutation!')
             return false;
         }
