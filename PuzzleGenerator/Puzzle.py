@@ -73,7 +73,7 @@ class Puzzle(object):
             return True # After some time, give up.
         return False
     
-    def PopulatePointCloudForPermutationGroup(self):
+    def PopulatePointCloudForPermutationGroup(self, cloud):
         # Some puzzles can give a better set of points to use for generating the associated group.
         return False
     
@@ -151,7 +151,7 @@ class Puzzle(object):
         # Adding mid-points does not always guarantee that the group we're coming up with
         # is not a factor group of the group we actually care about.  This is why some puzzles
         # may want to give us a specific set of points.
-        if not self.PopulatePointCloudForPermutationGroup():
+        if not self.PopulatePointCloudForPermutationGroup(cloud):
             for edge in graph.GenerateEdgeSegments():
                 cloud.Add(edge.Lerp(0.5))
             cloud.Add(graph)

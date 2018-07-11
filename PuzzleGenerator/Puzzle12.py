@@ -35,3 +35,15 @@ class Puzzle12(Puzzle):
 
     def Name(self):
         return 'Puzzle12'
+    
+    def PopulatePointCloudForPermutationGroup(self, cloud):
+        for x in range(0, 5):
+            for y in range(0, 4):
+                if (x < 2 and y == 3) or (x > 2 and y == 0):
+                    continue
+                center = Vector(x + 0.5, y + 0.5)
+                cloud.Add(center + Vector(-0.3, -0.3))
+                cloud.Add(center + Vector(0.3, -0.3))
+                cloud.Add(center + Vector(0.3, 0.3))
+                cloud.Add(center + Vector(-0.3, 0.3))
+        return True
