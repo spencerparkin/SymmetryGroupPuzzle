@@ -232,7 +232,8 @@ class Puzzle {
                     let move = move_map[element['name']];
                     // Reflections are their own inverse.  The only 2 rotations (the first two)
                     // are inverses of one another, so we can easily invert the move here.
-                    if(element['exponent'] < 0 && move[1] < 2) {
+                    // If there is only 1 symmetry of the shape, however, it is a reflection.
+                    if(element['exponent'] < 0 && move[1] < 2 && this.mesh_list[move[0]].perm_list.length > 1) {
                         move = [move[0], 1 - move[1]];
                     }
                     move_sequence.push(move);
@@ -700,10 +701,13 @@ var OnCanvasMouseWheel = event => {
     let i = puzzle.FindCaptureMeshContainingPoint(location);
     if(i >= 0) {
         let mesh = puzzle.mesh_list[i];
-        // The first two symmetries are always CCW/CW rotations, respectively.
-        let j = event.deltaY > 0 ? 1 : 0;
-        puzzle.move_queue.push([i, j]);
-        event.preventDefault();
+        if(mesh.symmetry_list.length > 1) {
+            // The first two symmetries are always CCW/CW rotations, respectively,
+            // if the shape has rotational symmetry.
+            let j = event.deltaY > 0 ? 1 : 0;
+            puzzle.move_queue.push([i, j]);
+            event.preventDefault();
+        }
     }
 }
 

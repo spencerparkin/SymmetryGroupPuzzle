@@ -14,8 +14,6 @@ from math2d_region import Region, SubRegion
 from math2d_planar_graph import PlanarGraph
 from math2d_aa_rect import AxisAlignedRectangle
 from math2d_vector import Vector
-from math2d_affine_transform import AffineTransform
-from math2d_linear_transform import LinearTransform
 from math2d_line_segment import LineSegment
 from math2d_point_cloud import PointCloud
 
@@ -30,7 +28,9 @@ class CutRegion(object):
         point_cloud = PointCloud()
         point_cloud.Add(self.region)
         reflection_list, ccw_rotation, cw_rotation = point_cloud.GenerateSymmetries()
-        self.symmetry_list = [ccw_rotation, cw_rotation] + [entry['reflection'] for entry in reflection_list]
+        self.symmetry_list = [entry['reflection'] for entry in reflection_list]
+        if ccw_rotation is not None and cw_rotation is not None:
+            self.symmetry_list = [ccw_rotation, cw_rotation] + self.symmetry_list
     
     def GenerateRegularPolygon(self, sides, radius):
         sub_region = SubRegion()
@@ -239,6 +239,8 @@ class Puzzle(object):
             mesh_list.append({
                 'file': mesh_file,
                 'type': 'capture_mesh',
+                # Note that if the symmetry list has one entry, it's a reflection.
+                # If it has 2 or more entries, then the first 2 are always rotations, the rest reflections.
                 'symmetry_list': [symmetry.Serialize() for symmetry in cut_region.symmetry_list],
                 'permutation_list': [permutation for permutation in cut_region.permutation_list]
             })
