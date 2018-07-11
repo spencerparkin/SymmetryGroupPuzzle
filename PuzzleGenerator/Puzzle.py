@@ -26,11 +26,14 @@ class CutRegion(object):
     def GenerateSymmetryList(self):
         from math2d_point_cloud import PointCloud
         point_cloud = PointCloud()
+        # Can you think of a shape whose set of symmetries is not the same as the set of symmetries of the vertices of that shape?
         point_cloud.Add(self.region)
         reflection_list, ccw_rotation, cw_rotation = point_cloud.GenerateSymmetries()
         self.symmetry_list = [entry['reflection'] for entry in reflection_list]
         if ccw_rotation is not None and cw_rotation is not None:
             self.symmetry_list = [ccw_rotation, cw_rotation] + self.symmetry_list
+        if len(self.symmetry_list) == 0:
+            raise Exception('Every shape of the puzzle needs a non-empty symmetry list.')
     
     def GenerateRegularPolygon(self, sides, radius):
         sub_region = SubRegion()
@@ -145,9 +148,10 @@ class Puzzle(object):
         # This can be used to generate a solution to the puzzle.
         print('Generating permutations that generate the group...')
         cloud = PointCloud()
+        # Adding mid-points does not always guarantee that the group we're coming up with
+        # is not a factor group of the group we actually care about.  This is why some puzzles
+        # may want to give us a specific set of points.
         if not self.PopulatePointCloudForPermutationGroup():
-            # It's not entirely clear to me if adding mid-points of segments insures that
-            # we're solving more than just a homomorphic image of the puzzle's group.
             for edge in graph.GenerateEdgeSegments():
                 cloud.Add(edge.Lerp(0.5))
             cloud.Add(graph)

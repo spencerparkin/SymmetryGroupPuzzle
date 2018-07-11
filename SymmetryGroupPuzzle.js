@@ -679,10 +679,12 @@ var OnCanvasClicked = event => {
     let i = puzzle.FindCaptureMeshContainingPoint(location);
     if(i >= 0) {
         let mesh = puzzle.mesh_list[i];
-        // We skip the first 2, because they're rotations.  We only care about the reflections here.
         let smallest_distance = 99999.0;
         let j = -1;
-        for(let k = 2; k < mesh.symmetry_list.length; k++) {
+        // We skip the first 2, because they're rotations.  We only care about the reflections here.
+        // But if there is only 1 symmetry, it is a reflection.
+        let start = mesh.symmetry_list.length > 1 ? 2 : 0;
+        for(let k = start; k < mesh.symmetry_list.length; k++) {
             let reflection = mesh.symmetry_list[k];
             let location_reflected = vec2.create();
             vec2.transformMat3(location_reflected, location, reflection);
@@ -726,7 +728,7 @@ var OnCanvasMouseMove = event => {
 
 var OnNewPuzzleButtonClicked = () => {
     puzzle_number += 1;
-    if(puzzle_number > 7)
+    if(puzzle_number > 8)
         puzzle_number = 1;
     let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
     Promise.all([

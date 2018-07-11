@@ -26,7 +26,7 @@ class Puzzle8(Puzzle):
         # This shape has reflection symmetry, but no rotational symmetry.
         sub_region = SubRegion()
         sub_region.polygon.vertex_list.append(Vector(-1.0, 0.0))
-        sub_region.polygon.vertex_list.append(Vector(-1.0, math.sqrt(3.0) * 3.0 / 2.0))
+        sub_region.polygon.vertex_list.append(Vector(-1.0, 2.0))
         sub_region.polygon.vertex_list.append(Vector(-3.0, 0.0))
         cut_region = CutRegion()
         cut_region.region = Region()
