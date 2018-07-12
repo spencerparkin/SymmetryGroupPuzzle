@@ -168,7 +168,8 @@ class Puzzle(object):
                         raise Exception('Failed to generate permutation!')
                     permutation.append(j)
                 cut_region.permutation_list.append(permutation)
-                generator_list.append(Perm(permutation))
+                if calc_solution:
+                    generator_list.append(Perm(permutation))
 
         # If asked, try to find a stab-chain that can be used to solve the puzzle.
         if calc_solution:
@@ -239,7 +240,7 @@ class Puzzle(object):
             mesh_file = self.Name() + '_CaptureMesh%d.json' % i
             mesh = cut_region.region.GenerateMesh()
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
-                mesh_handle.write(json.dumps(mesh.Serialize(), sort_keys=True, indent=4, separators=(',', ': ')))
+                mesh_handle.write(json.dumps({'mesh': mesh.Serialize(), 'outline': cut_region.region.Serialize()}, sort_keys=True, indent=4, separators=(',', ': ')))
             mesh_list.append({
                 'file': mesh_file,
                 'type': 'capture_mesh',
@@ -253,7 +254,7 @@ class Puzzle(object):
         for i, polygon in enumerate(polygon_list):
             mesh_file = self.Name() + '_PictureMesh%d.json' % i
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
-                mesh_handle.write(json.dumps(polygon.mesh.Serialize(), sort_keys=True, indent=4, separators=(',', ': ')))
+                mesh_handle.write(json.dumps({'mesh': polygon.mesh.Serialize()}, sort_keys=True, indent=4, separators=(',', ': ')))
             mesh_list.append({
                 'file': mesh_file,
                 'type': 'picture_mesh',

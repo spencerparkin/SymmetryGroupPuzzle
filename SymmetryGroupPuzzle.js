@@ -116,7 +116,7 @@ class Puzzle {
         gl.uniform4f(blendFactorLoc, 1.0, 1.0, 1.0, 1.0);
 
         let constColorLoc = gl.getUniformLocation(mesh_shader_program.program, 'const_color');
-        gl.uniform4f(constColorLoc, 1.0, 1.0, 1.0, 0.1);
+        gl.uniform4f(constColorLoc, 1.0, 0.0, 0.0, 0.9);
 
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
@@ -129,7 +129,8 @@ class Puzzle {
         if(this.highlight_mesh >= 0) {
             gl.uniform4f(blendFactorLoc, 0.0, 0.0, 0.0, 0.0);
             let mesh = this.mesh_list[this.highlight_mesh];
-            mesh.Render(localVertexLoc, localToWorldLoc, false);
+            gl.lineWidth(5.0); // Unfortunately, I don't think this is supported.
+            mesh.Render(localVertexLoc, localToWorldLoc, false, false, true);
         }
     }
     
@@ -354,6 +355,8 @@ class Mesh {
         this.vertex_list = [];
         this.index_buffer = null;
         this.vertex_buffer = null;
+        this.line_vertex_buffer = null;
+        this.line_count = 0;
         if('symmetry_list' in mesh_data) {
             this.symmetry_list = [];
             for(let i = 0; i < mesh_data['symmetry_list'].length; i++) {
@@ -386,6 +389,10 @@ class Mesh {
             gl.deleteBuffer(this.vertex_buffer);
             this.vertex_buffer = null;
         }
+        if(this.line_vertex_buffer !== null) {
+            gl.deleteBuffer(this.line_vertex_buffer);
+            this.line_vertex_buffer = null;
+        }
     }
     
     Promise(source) {
@@ -395,8 +402,8 @@ class Mesh {
                 dataType: 'json',
                 success: mesh_data => {
                     this.ReleaseBuffers();
-                    this.triangle_list = mesh_data.triangle_list;
-                    this.vertex_list = mesh_data.vertex_list;
+                    this.triangle_list = mesh_data.mesh.triangle_list;
+                    this.vertex_list = mesh_data.mesh.vertex_list;
                     this.index_buffer = gl.createBuffer();
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
                     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.MakeIndexBufferData(), gl.STATIC_DRAW);
@@ -404,6 +411,11 @@ class Mesh {
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
                     gl.bufferData(gl.ARRAY_BUFFER, this.MakeVertexBufferData(), gl.STATIC_DRAW);
                     this.CalcCenter();
+                    if('outline' in mesh_data) {
+                        this.line_vertex_buffer = gl.createBuffer();
+                        gl.bindBuffer(gl.ARRAY_BUFFER, this.line_vertex_buffer);
+                        gl.bufferData(gl.ARRAY_BUFFER, this.MakeLineVertexBufferData(mesh_data.outline), gl.STATIC_DRAW);
+                    }
                     resolve();
                 },
                 failure: error => {
@@ -421,20 +433,30 @@ class Mesh {
         vec2.scale(this.center, this.center, 1.0 / this.vertex_list.length);
     }
     
-    Render(localVertexLoc, localToWorldLoc, animation_enabled) {
+    Render(localVertexLoc, localToWorldLoc, animation_enabled, render_mesh=true, render_outline=false) {
         let local_to_world = this.local_to_world;
         if(animation_enabled)
             local_to_world = this.anim_local_to_world;
         
         gl.uniformMatrix3fv(localToWorldLoc, false, local_to_world);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-        gl.vertexAttribPointer(localVertexLoc, 2, gl.FLOAT, false, 8, 0);
-        gl.enableVertexAttribArray(localVertexLoc);
+        if(render_mesh) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
+            gl.vertexAttribPointer(localVertexLoc, 2, gl.FLOAT, false, 8, 0);
+            gl.enableVertexAttribArray(localVertexLoc);
+            
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
+            
+            gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
+        }
         
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
-        
-        gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
+        if(render_outline && this.line_vertex_buffer !== null) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.line_vertex_buffer);
+            gl.vertexAttribPointer(localVertexLoc, 2, gl.FLOAT, false, 8, 0);
+            gl.enableVertexAttribArray(localVertexLoc);
+            
+            gl.drawArrays(gl.LINES, 0, this.line_count * 2);
+        }
     }
     
     IsSolved() {
@@ -553,6 +575,29 @@ class Mesh {
             let vertex = this.vertex_list[i];
             vertex_list.push(vertex['x']);
             vertex_list.push(vertex['y']);
+        }
+        return new Float32Array(vertex_list);
+    }
+    
+    MakeLineVertexBufferData(outline) {
+        this.line_count = 0;
+        let vertex_list = [];
+        for(let i = 0; i < outline.sub_region_list.length; i++) {
+            let sub_region = outline.sub_region_list[i];
+            let polygon_list = [sub_region.border_polygon];
+            polygon_list = polygon_list.concat(sub_region.hole_list);
+            for(let j = 0; j < polygon_list.length; j++) {
+                let polygon = polygon_list[j];
+                for(let k = 0; k < polygon.vertex_list.length; k++) {
+                    let vertex = polygon.vertex_list[k];
+                    vertex_list.push(vertex['x']);
+                    vertex_list.push(vertex['y']);
+                    vertex = polygon.vertex_list[(k + 1) % polygon.vertex_list.length];
+                    vertex_list.push(vertex['x']);
+                    vertex_list.push(vertex['y']);
+                    this.line_count++;
+                }
+            }
         }
         return new Float32Array(vertex_list);
     }
