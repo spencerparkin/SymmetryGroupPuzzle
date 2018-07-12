@@ -10,6 +10,7 @@ from PyPermGroup import Perm, StabChain
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from PyQt5 import QtGui, QtCore, QtWidgets
+from PIL import Image, ImageDraw
 from math2d_region import Region, SubRegion
 from math2d_planar_graph import PlanarGraph
 from math2d_aa_rect import AxisAlignedRectangle
@@ -172,6 +173,7 @@ class Puzzle(object):
                     generator_list.append(Perm(permutation))
 
         # If asked, try to find a stab-chain that can be used to solve the puzzle.
+        stab_chain = None
         if calc_solution:
             # This is not necessarily the best base for solving the puzzle.
             base_array = [i for i in range(len(cloud.point_list))]
@@ -183,19 +185,26 @@ class Puzzle(object):
             order = stab_chain.order()
             print('Group order = %d' % order)
             stab_chain.solve(self.SolveCallback)
-            
-            # If no exception was thrown to this point, we succeeded.  Splat the stab-chain.
-            stab_chain_file = puzzle_folder + '/' + self.Name() + '_StabChain.json'
-            with open(stab_chain_file, 'w') as handle:
-                json_data = stab_chain.to_json()
-                handle.write(json_data)
 
         # Calculate a bounding rectangle for the graph, size it up a bit, then add it to the graph.
-        print('Adding border...')
+        # Also, generate a preview icon for the puzzle that can be used for selection purposes in the web-app.
+        print('Adding border and drawing icon...')
         rect = AxisAlignedRectangle()
         rect.GrowFor(graph)
         rect.Scale(1.1)
         rect.ExpandToMatchAspectRatioOf(AxisAlignedRectangle(Vector(0.0, 0.0), Vector(1.0, 1.0)))
+        preview_image = Image.new('RGBA', (128, 128), (255, 255, 255, 0))
+        preview_image_rect = AxisAlignedRectangle(Vector(0.0, 0.0), Vector(float(preview_image.width), float(preview_image.height)))
+        preview_draw = ImageDraw.Draw(preview_image)
+        for edge in graph.GenerateEdgeSegments():
+            edge = rect.Map(edge, preview_image_rect)
+            edge = [
+                int(edge.point_a.x),
+                preview_image.height - 1 - int(edge.point_a.y),
+                int(edge.point_b.x),
+                preview_image.height - 1 - int(edge.point_b.y)
+            ]
+            preview_draw.line(edge, fill=(0, 0, 0, 255), width=2)
         graph.Add(rect)
 
         # Before we can pull the empty cycles out of the graph, we need to merge all connected components into one.
@@ -235,6 +244,7 @@ class Puzzle(object):
         # Finally, write out the level file along with its accompanying mesh files.
         # Note that I think we can calculate UVs as a function of the object-space coordinates in the shader.
         print('Writing level files...')
+        preview_image.save(puzzle_folder + '/' + self.Name() + '_Icon.png')
         mesh_list = []
         for i, cut_region in enumerate(self.cut_region_list):
             mesh_file = self.Name() + '_CaptureMesh%d.json' % i
@@ -265,6 +275,11 @@ class Puzzle(object):
                 'mesh_list': mesh_list,
                 'window': rect.Serialize()
             }, sort_keys=True, indent=4, separators=(',', ': ')))
+        if stab_chain is not None:
+            stab_chain_file = puzzle_folder + '/' + self.Name() + '_StabChain.json'
+            with open(stab_chain_file, 'w') as handle:
+                json_data = stab_chain.to_json()
+                handle.write(json_data)
 
 class DebugWindow(QtGui.QOpenGLWindow):
     def __init__(self, parent=None, object=None):
