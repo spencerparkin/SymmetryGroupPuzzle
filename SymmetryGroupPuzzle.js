@@ -10,6 +10,7 @@ class Puzzle {
         this.highlight_mesh = -1;
         this.move_queue = [];
         this.permutation = [];
+        this.animation_lerp = 0.05;
     }
     
     PromiseComputerCanSolve(puzzle_number) {
@@ -150,7 +151,7 @@ class Puzzle {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.type === 'picture_mesh')
-                mesh.AdvanceAnimation(snap)
+                mesh.AdvanceAnimation(snap, this.animation_lerp)
         }
     }
     
@@ -449,7 +450,7 @@ class Mesh {
     }
     
     AnimationSettled() {
-        let epsilon = 0.1;
+        let epsilon = 0.001;
         let diff_mat = mat3.create();
         mat3.subtract(diff_mat, this.anim_local_to_world, this.local_to_world);
         let i = 0;
@@ -466,12 +467,10 @@ class Mesh {
         return false;
     }
     
-    AdvanceAnimation(snap=false) {
+    AdvanceAnimation(snap=false, lerp=0.1) {
         if(snap) {
             mat3.copy(this.anim_local_to_world, this.local_to_world);
         } else {
-            let lerp = 0.2; // TODO: This really should be based on frame-rate.
-            
             let anim_x_axis = vec2.create();
             let anim_y_axis = vec2.create();
             
@@ -517,7 +516,7 @@ class Mesh {
     }
     
     Slerp(normal_a, normal_b, lerp) {
-        let epsilon = 0.01;
+        let epsilon = 0.0001;
         let result = vec2.create();
         let dot = vec2.dot(normal_a, normal_b);
         if(Math.abs(dot + 1.0) < epsilon) {
@@ -758,6 +757,12 @@ var OnSolveButtonClicked = () => {
 
 var OnAnimationToggleClicked = () => {
     puzzle.AdvanceAnimation(true);
+}
+
+var OnAnimationSliderMoved = (slider_value) => {
+    let slow_lerp = 0.05;
+    let fast_lerp = 0.5;
+    puzzle.animation_lerp = slow_lerp + (slider_value / 100.0) * (fast_lerp - slow_lerp);
 }
 
 var settle_render = false;
