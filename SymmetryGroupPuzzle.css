@@ -21,3 +21,18 @@ canvas {
 p, h1, h2, h3 {
     font-family: 'Roboto', sans-serif;
 }
+
+div.puzzle_menu {
+    background-color: #FFF;
+    overflow: auto;
+    white-space: nowrap;
+}
+
+div.puzzle_menu img {
+    display: inline-block;
+    padding: 0px;
+}
+
+div.puzzle_menu img:hover {
+    background-color: #777;
+}

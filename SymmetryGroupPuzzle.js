@@ -668,6 +668,38 @@ class Mesh {
     }
 }
 
+var OnPuzzleMenuItemClicked = (i) => {
+    puzzle_number = i;
+    let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
+    Promise.all([
+        puzzle.Promise(puzzle_file),
+        puzzle.PromiseComputerCanSolve(puzzle_number)
+    ]).then(() => {
+        puzzle.Render();
+        $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
+    });
+}
+
+var BuildPuzzleMenu = () => {
+    $.ajax({
+        url: 'puzzle_count',
+        dataType: 'json',
+        success: json_data => {
+            let count = json_data['puzzle_count'];
+            let puzzle_menu_div = document.getElementById('puzzle_menu');
+            for(let i = 1; i <= count; i++) {
+                let img = document.createElement('IMG')
+                img.src = 'Puzzles/Puzzle' + i.toString() + '_Icon.png';
+                img.addEventListener('click', (e) => {OnPuzzleMenuItemClicked(i)});
+                puzzle_menu_div.appendChild(img);
+            }
+        },
+        failure: error => {
+            alert(error);
+        }
+    });
+}
+
 var gl = null;
 var puzzle = new Puzzle();
 var puzzle_number = 1;
@@ -682,6 +714,8 @@ var picture_mesh_texture = {
 
 var OnDocumentReady = () => {
 	try {
+	    BuildPuzzleMenu();
+	    
 	    let canvas = $('#canvas')[0];
 	    canvas.style.width = '800px';
 	    canvas.style.height = '800px';
@@ -770,21 +804,7 @@ var OnCanvasMouseMove = event => {
     }
 }
 
-var OnNewPuzzleButtonClicked = () => {
-    puzzle_number += 1;
-    if(puzzle_number > 12)
-        puzzle_number = 1;
-    let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
-    Promise.all([
-        puzzle.Promise(puzzle_file),
-        puzzle.PromiseComputerCanSolve(puzzle_number)
-    ]).then(() => {
-        puzzle.Render();
-        $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
-    });
-}
-
-var OnNewImageButtonClicked = () => {
+var OnCycleImageButtonClicked = () => {
     picture_mesh_texture.number = (picture_mesh_texture.number + 1) % 10;
     picture_mesh_texture.source = 'Images/image' + picture_mesh_texture.number.toString() + '.png';
     PromiseTexture(picture_mesh_texture).then(() => {

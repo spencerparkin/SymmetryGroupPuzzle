@@ -13,20 +13,19 @@
 </head>
 <body>
     <h1>Symmetry Group Puzzle</h1>
+    <div class="puzzle_menu" id="puzzle_menu">
+    </div>
     <h3 id="puzzle_name"></h3>
-    <button type="button" onclick="OnNewPuzzleButtonClicked()">New Puzzle</button>
-    <button type="button" onclick="OnNewImageButtonClicked()">New Image</button>
-    <br>
     <br>
     <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
     <br>
     <input id="hover_highlights_check" type="checkbox" checked>Hover Highlights</input>
     <input id="animation_check" type="checkbox" onclick="OnAnimationToggleClicked()">Animate</input>
-    
     <button type="button" onclick="OnScrambleButtonClicked()">Scramble!</button>
     <button id="solve_button" type="button" onclick="OnSolveButtonClicked()">Solve!</button>
+    <button type="button" onclick="OnCycleImageButtonClicked()">Cycle Image</button>
     <br>
-    Animation speed: <input type="range" min="0" max="100" value="50" step="1" id="animation_range" oninput="OnAnimationSliderMoved(this.value)">
+    Animation Speed: <input type="range" min="0" max="100" value="50" step="1" id="animation_range" oninput="OnAnimationSliderMoved(this.value)">
     <h2>Introduction</h2>
     <p>
         Welcome!  This page features a kind of twisty puzzle based upon the symmetries of overlapping shapes.
@@ -50,11 +49,12 @@
         this style of interface that I have yet to resolve.
     </p>
     <p>
-        The buttons up-top let you cycle through the various puzzles and images available.  A button below
+        The menu up top lets you choose the puzzle you want to play.  A button below
         lets you scramble the current puzzle.  (Push it a few times to get a good scramble.)
         Notice that animation and hover-highlights can be toggled.
         The highlights are useful for discovering the generators of a puzzle.
         The animation was a fun experiment, but I prefer it off if I'm giving the puzzle any serious effort.
+        Another button lets you change the image of the puzzle.
     </p>
     <h2>Group Theory</h2>
     <p>

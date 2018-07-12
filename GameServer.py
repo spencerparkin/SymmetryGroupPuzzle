@@ -23,6 +23,17 @@ class GameServer(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    def puzzle_count(self, **kwargs):
+        count = 1
+        while True:
+            puzzle_file = self.root_dir + '/Puzzles/Puzzle%d.json' % (count + 1)
+            if not os.path.exists(puzzle_file):
+                break
+            count += 1
+        return {'puzzle_count': count}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
     def computer_can_solve(self, **kwargs):
         computer_can_solve = False
         try:
