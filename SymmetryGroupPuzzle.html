@@ -23,7 +23,8 @@
     <input id="animation_check" type="checkbox" onclick="OnAnimationToggleClicked()">Animate</input>
     <button type="button" onclick="OnScrambleButtonClicked()">Scramble!</button>
     <button id="solve_button" type="button" onclick="OnSolveButtonClicked()">Solve!</button>
-    <button type="button" onclick="OnCycleImageButtonClicked()">Cycle Image</button>
+    <button type="button" onclick="OnPrevImageButtonClicked()">Prev Image</button>
+    <button type="button" onclick="OnNextImageButtonClicked()">Next Image</button>
     <br>
     Animation Speed: <input type="range" min="0" max="100" value="50" step="1" id="animation_range" oninput="OnAnimationSliderMoved(this.value)">
     <h2>Introduction</h2>
@@ -54,7 +55,7 @@
         Notice that animation and hover-highlights can be toggled.
         The highlights are useful for discovering the generators of a puzzle.
         The animation was a fun experiment, but I prefer it off if I'm giving the puzzle any serious effort.
-        Another button lets you change the image of the puzzle.
+        Two buttons let you cycle forward or backward through the possible puzzle background images.
     </p>
     <h2>Group Theory</h2>
     <p>

@@ -24,13 +24,24 @@ class GameServer(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def puzzle_count(self, **kwargs):
-        count = 1
+        count = 0
         while True:
             puzzle_file = self.root_dir + '/Puzzles/Puzzle%d.json' % (count + 1)
             if not os.path.exists(puzzle_file):
                 break
             count += 1
         return {'puzzle_count': count}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def image_count(self, **kwargs):
+        count = 0
+        while True:
+            puzzle_file = self.root_dir + '/Images/image%d.png' % count
+            if not os.path.exists(puzzle_file):
+                break
+            count += 1
+        return {'image_count': count}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

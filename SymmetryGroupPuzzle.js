@@ -707,6 +707,7 @@ var mesh_shader_program = {
     'vert_shader_source': 'Shaders/MeshVertShader.txt',
     'frag_shader_source': 'Shaders/MeshFragShader.txt',
 };
+var picture_mesh_count = 0;
 var picture_mesh_texture = {
     'number': 0,
     'source': 'Images/image0.png',
@@ -745,6 +746,17 @@ var OnDocumentReady = () => {
         ]).then(() => {
             puzzle.Render();
             $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
+        });
+        
+        $.ajax({
+            url: 'image_count',
+            dataType: 'json',
+            success: json_data => {
+                picture_mesh_count = json_data['image_count'];
+            },
+            failure: error => {
+                alert(error);
+            }
         });
 
 	} catch(error) {
@@ -804,12 +816,26 @@ var OnCanvasMouseMove = event => {
     }
 }
 
-var OnCycleImageButtonClicked = () => {
-    picture_mesh_texture.number = (picture_mesh_texture.number + 1) % 10;
-    picture_mesh_texture.source = 'Images/image' + picture_mesh_texture.number.toString() + '.png';
-    PromiseTexture(picture_mesh_texture).then(() => {
-        puzzle.Render();
-    });
+var ChangeImage = (delta) => {
+    if(picture_mesh_count > 0) {
+        picture_mesh_texture.number = picture_mesh_texture.number + delta;
+        if(picture_mesh_texture.number >= picture_mesh_count)
+            picture_mesh_texture.number = 0;
+        else if(picture_mesh_texture.number < 0)
+            picture_mesh_texture.number = picture_mesh_count - 1;
+        picture_mesh_texture.source = 'Images/image' + picture_mesh_texture.number.toString() + '.png';
+        PromiseTexture(picture_mesh_texture).then(() => {
+            puzzle.Render();
+        });
+    }
+}
+
+var OnNextImageButtonClicked = () => {
+    ChangeImage(1);
+}
+
+var OnPrevImageButtonClicked = () => {
+    ChangeImage(-1);
 }
 
 var OnScrambleButtonClicked = () => {
