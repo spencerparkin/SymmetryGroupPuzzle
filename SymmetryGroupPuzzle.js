@@ -76,7 +76,8 @@ class Puzzle {
                     });
                     Promise.all(mesh_promise_list).then(() => {
                         this.permutation = [];
-                        //this.QueueScrambleMoves(50);
+                        if(document.getElementById('initial_scramble_check').checked)
+                            this.QueueScrambleMoves(50);
                         resolve();
                     });
                 },
