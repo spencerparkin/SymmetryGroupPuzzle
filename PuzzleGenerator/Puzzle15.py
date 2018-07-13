@@ -13,19 +13,19 @@ class Puzzle15(Puzzle):
         super().__init__()
 
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(1.0, 8)
+        cut_region.GenerateRegularPolygon(8, 1.0)
         self.cut_region_list.append(cut_region)
 
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(2.0, 8)
+        cut_region.GenerateRegularPolygon(8, 2.0)
         self.cut_region_list.append(cut_region)
 
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(3.0, 8)
+        cut_region.GenerateRegularPolygon(8, 3.0)
         self.cut_region_list.append(cut_region)
 
         cut_region = CutRegion()
-        cut_region.GenerateRegularPolygon(4.0, 8)
+        cut_region.GenerateRegularPolygon(8, 4.0)
         self.cut_region_list.append(cut_region)
 
         sub_region = SubRegion()
