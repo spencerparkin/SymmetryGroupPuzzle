@@ -36,7 +36,7 @@ class Puzzle12(Puzzle):
     def Name(self):
         return 'Puzzle12'
     
-    def PopulatePointCloudForPermutationGroup(self, cloud):
+    def PopulatePointCloudForPermutationGroup(self, cloud, graph):
         for x in range(0, 5):
             for y in range(0, 4):
                 if (x < 2 and y == 3) or (x > 2 and y == 0):

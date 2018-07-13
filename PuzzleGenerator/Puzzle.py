@@ -74,7 +74,7 @@ class Puzzle(object):
             return True # After some time, give up.
         return False
     
-    def PopulatePointCloudForPermutationGroup(self, cloud):
+    def PopulatePointCloudForPermutationGroup(self, cloud, graph):
         # Some puzzles can give a better set of points to use for generating the associated group.
         return False
     
@@ -150,7 +150,7 @@ class Puzzle(object):
         # This can be used to generate a solution to the puzzle.
         generator_list = []
         cloud = PointCloud()
-        if self.PopulatePointCloudForPermutationGroup(cloud):
+        if self.PopulatePointCloudForPermutationGroup(cloud, graph):
             print('Generating permutations that generate the group...')
             for cut_region in self.cut_region_list:
                 cut_region.permutation_list = []

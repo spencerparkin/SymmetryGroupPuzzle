@@ -26,3 +26,9 @@ class Puzzle1(Puzzle):
     
     def Name(self):
         return 'Puzzle1'
+    
+    def PopulatePointCloudForPermutationGroup(self, cloud, graph):
+        cloud.Add(graph)
+        for edge in graph.GenerateEdgeSegments():
+            cloud.Add(edge.Lerp(0.5))
+        return True
