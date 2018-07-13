@@ -148,30 +148,26 @@ class Puzzle(object):
             DebugDraw(graph)
 
         # This can be used to generate a solution to the puzzle.
-        print('Generating permutations that generate the group...')
-        cloud = PointCloud()
-        # Adding mid-points does not always guarantee that the group we're coming up with
-        # is not a factor group of the group we actually care about.  This is why some puzzles
-        # may want to give us a specific set of points.
-        if not self.PopulatePointCloudForPermutationGroup(cloud):
-            for edge in graph.GenerateEdgeSegments():
-                cloud.Add(edge.Lerp(0.5))
-            cloud.Add(graph)
         generator_list = []
-        for cut_region in self.cut_region_list:
-            cut_region.permutation_list = []
-            for symmetry in cut_region.symmetry_list:
-                permutation = []
-                for i, point in enumerate(cloud.point_list):
-                    if cut_region.region.ContainsPoint(point):
-                        point = symmetry * point
-                    j = cloud.FindPoint(point)
-                    if j is None:
-                        raise Exception('Failed to generate permutation!')
-                    permutation.append(j)
-                cut_region.permutation_list.append(permutation)
-                if calc_solution:
-                    generator_list.append(Perm(permutation))
+        cloud = PointCloud()
+        if self.PopulatePointCloudForPermutationGroup(cloud):
+            print('Generating permutations that generate the group...')
+            for cut_region in self.cut_region_list:
+                cut_region.permutation_list = []
+                for symmetry in cut_region.symmetry_list:
+                    permutation = []
+                    for i, point in enumerate(cloud.point_list):
+                        if cut_region.region.ContainsPoint(point):
+                            point = symmetry * point
+                        j = cloud.FindPoint(point)
+                        if j is None:
+                            nearest_points, smallest_distance = cloud.FindNearestPoints(point)
+                            nearest_points = '[' + ','.join(['%d' % i for i in nearest_points]) + ']'
+                            raise Exception('Failed to generate permutation!  Nearest points: %s; Smallest distance: %f' % (nearest_points, smallest_distance))
+                        permutation.append(j)
+                    cut_region.permutation_list.append(permutation)
+                    if calc_solution:
+                        generator_list.append(Perm(permutation))
 
         # If asked, try to find a stab-chain that can be used to solve the puzzle.
         stab_chain = None

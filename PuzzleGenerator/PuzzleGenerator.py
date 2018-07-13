@@ -21,6 +21,7 @@ from Puzzle12 import Puzzle12
 from Puzzle13 import Puzzle13
 from Puzzle14 import Puzzle14
 from Puzzle15 import Puzzle15
+from Puzzle16 import Puzzle16
 
 import argparse
 

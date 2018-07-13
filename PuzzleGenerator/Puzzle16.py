@@ -41,14 +41,14 @@ class Puzzle16(Puzzle):
         self.cut_region_list.append(cut_region)
 
         sub_region = SubRegion()
-        sub_region.polygon.vertex_list.append(Vector(3.0, 0.0))
-        sub_region.polygon.vertex_list.append(Vector(-3.0, 0.0))
-        sub_region.polygon.vertex_list.append(Vector(-3.0, 1.0))
-        sub_region.polygon.vertex_list.append(Vector(4.0, 1.0))
-        sub_region.polygon.vertex_list.append(Vector(4.0, -2.0))
-        sub_region.polygon.vertex_list.append(Vector(-3.0, -2.0))
-        sub_region.polygon.vertex_list.append(Vector(-3.0, -1.0))
         sub_region.polygon.vertex_list.append(Vector(3.0, -1.0))
+        sub_region.polygon.vertex_list.append(Vector(-3.0, -1.0))
+        sub_region.polygon.vertex_list.append(Vector(-3.0, -2.0))
+        sub_region.polygon.vertex_list.append(Vector(4.0, -2.0))
+        sub_region.polygon.vertex_list.append(Vector(4.0, 1.0))
+        sub_region.polygon.vertex_list.append(Vector(-3.0, 1.0))
+        sub_region.polygon.vertex_list.append(Vector(-3.0, 0.0))
+        sub_region.polygon.vertex_list.append(Vector(3.0, 0.0))
         cut_region = CutRegion()
         cut_region.region = Region()
         cut_region.region.sub_region_list.append(sub_region)
@@ -68,10 +68,10 @@ class Puzzle16(Puzzle):
         cut_region.region.sub_region_list.append(sub_region)
         self.cut_region_list.append(cut_region)
 
-        transform = AffineTransform()
-        transform.Rotation(Vector(0.0, 0.0), math.pi / 8.0)
-        for cut_region in self.cut_region_list:
-            cut_region.Transform(transform)
+        #transform = AffineTransform()
+        #transform.Rotation(Vector(0.0, 0.0), math.pi / 4.0)
+        #for cut_region in self.cut_region_list:
+        #    cut_region.Transform(transform)
 
     def Name(self):
         return 'Puzzle16'
