@@ -1,0 +1,347 @@
+{
+    "mesh_list": [
+        {
+            "file": "Puzzle16_CaptureMesh0.json",
+            "permutation_list": [],
+            "symmetry_list": [
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": -0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": 0.9999999999999998,
+                            "y": -2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": 2.121320343559642,
+                        "y": 2.121320343559642
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": 0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": -0.9999999999999998,
+                            "y": -2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": 2.121320343559643,
+                        "y": -2.121320343559643
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -2.220446049250313e-16,
+                            "y": 0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": 0.9999999999999998,
+                            "y": -2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": 2.121320343559643,
+                        "y": -2.121320343559643
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": 1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 4.242640687119286,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -2.220446049250313e-16,
+                            "y": -0.9999999999999998
+                        },
+                        "y_axis": {
+                            "x": -0.9999999999999998,
+                            "y": -2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": 2.121320343559643,
+                        "y": 2.121320343559643
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": -1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": 0.0
+                    }
+                }
+            ],
+            "type": "capture_mesh"
+        },
+        {
+            "file": "Puzzle16_CaptureMesh1.json",
+            "permutation_list": [],
+            "symmetry_list": [
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.0,
+                            "y": -0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": -1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 2.8284271247461903,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": -0.0,
+                            "y": -1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 2.8284271247461903,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": -1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": 1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 2.8284271247461903,
+                        "y": 0.0
+                    }
+                }
+            ],
+            "type": "capture_mesh"
+        },
+        {
+            "file": "Puzzle16_CaptureMesh2.json",
+            "permutation_list": [],
+            "symmetry_list": [
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": -1.0000000000000002
+                        },
+                        "y_axis": {
+                            "x": 1.0000000000000002,
+                            "y": -2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": -0.7071067811865476,
+                        "y": -0.7071067811865476
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": 1.0000000000000002
+                        },
+                        "y_axis": {
+                            "x": -1.0000000000000002,
+                            "y": -2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": -0.7071067811865476,
+                        "y": 0.7071067811865476
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": -1.0
+                        }
+                    },
+                    "translation": {
+                        "x": 0.0,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": 1.0000000000000002
+                        },
+                        "y_axis": {
+                            "x": 1.0000000000000002,
+                            "y": 2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": -0.7071067811865476,
+                        "y": 0.7071067811865476
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": -1.0,
+                            "y": 0.0
+                        },
+                        "y_axis": {
+                            "x": 0.0,
+                            "y": 1.0
+                        }
+                    },
+                    "translation": {
+                        "x": -1.4142135623730951,
+                        "y": 0.0
+                    }
+                },
+                {
+                    "linear_transform": {
+                        "x_axis": {
+                            "x": 2.220446049250313e-16,
+                            "y": -1.0000000000000002
+                        },
+                        "y_axis": {
+                            "x": -1.0000000000000002,
+                            "y": 2.220446049250313e-16
+                        }
+                    },
+                    "translation": {
+                        "x": -0.7071067811865476,
+                        "y": -0.7071067811865476
+                    }
+                }
+            ],
+            "type": "capture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh0.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh1.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh2.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh3.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh4.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh5.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh6.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh7.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh8.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh9.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh10.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh11.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh12.json",
+            "type": "picture_mesh"
+        },
+        {
+            "file": "Puzzle16_PictureMesh13.json",
+            "type": "picture_mesh"
+        }
+    ],
+    "window": {
+        "max_point": {
+            "x": 4.59619407771256,
+            "y": 3.8890872965260117
+        },
+        "min_point": {
+            "x": -3.1819805153394642,
+            "y": -3.8890872965260117
+        }
+    }
+}
