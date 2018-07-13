@@ -139,6 +139,7 @@ class Puzzle(object):
             added_edge_count = edge_count_after - edge_count_before
             if added_edge_count > 0:
                 count = 0
+                print('Edge count: %d' % edge_count_after)
             else:
                 count += 1
 

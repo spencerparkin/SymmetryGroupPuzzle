@@ -6,6 +6,7 @@ from Puzzle import Puzzle, CutRegion
 from math2d_region import Region, SubRegion
 from math2d_vector import Vector
 from math2d_polygon import Polygon
+from math2d_affine_transform import AffineTransform
 
 class Puzzle13(Puzzle):
     def __init__(self):
