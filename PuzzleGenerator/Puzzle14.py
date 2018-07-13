@@ -7,7 +7,6 @@ from math2d_region import Region, SubRegion
 from math2d_vector import Vector
 from math2d_polygon import Polygon
 
-
 class Puzzle14(Puzzle):
     def __init__(self):
         super().__init__()
