@@ -297,7 +297,7 @@ class Puzzle {
         return true;
     }
     
-    IsSolved(sanity_check=true) {
+    IsSolved(sanity_check=false) {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.type === 'picture_mesh' && !mesh.IsSolved())
@@ -626,6 +626,7 @@ class Mesh {
     }
     
     ContainsPoint(point) {
+        let eps = 0.001;
         for(let i = 0; i < this.triangle_list.length; i++) {
             let triangle = this.triangle_list[i];
             let j = 0;
@@ -637,7 +638,7 @@ class Mesh {
                 vec2.sub(vector, point, this.GetVertex(triangle[j]));
                 let result = vec3.create();
                 vec2.cross(result, edge_vector, vector);
-                if(result[2] < 0.0)
+                if(result[2] < -eps)
                     break;
             }
             if(j === 3)
