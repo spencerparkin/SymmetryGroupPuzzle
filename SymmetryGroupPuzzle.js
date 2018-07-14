@@ -675,12 +675,14 @@ class Mesh {
 var OnPuzzleMenuItemClicked = (i) => {
     puzzle_number = i;
     let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
+    $('#waiter').show();
     Promise.all([
         puzzle.Promise(puzzle_file),
         puzzle.PromiseComputerCanSolve(puzzle_number)
     ]).then(() => {
         puzzle.Render();
         $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
+        $('#waiter').hide();
     });
 }
 
@@ -719,6 +721,8 @@ var picture_mesh_texture = {
 
 var OnDocumentReady = () => {
 	try {
+	    $('#waiter').show();
+
 	    BuildPuzzleMenu();
 	    
 	    let canvas = $('#canvas')[0];
@@ -750,6 +754,7 @@ var OnDocumentReady = () => {
         ]).then(() => {
             puzzle.Render();
             $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
+            $('#waiter').hide();
         });
         
         $.ajax({
@@ -828,8 +833,10 @@ var ChangeImage = (delta) => {
         else if(picture_mesh_texture.number < 0)
             picture_mesh_texture.number = picture_mesh_count - 1;
         picture_mesh_texture.source = 'Images/image' + picture_mesh_texture.number.toString() + '.png';
+        $('#waiter').show();
         PromiseTexture(picture_mesh_texture).then(() => {
             puzzle.Render();
+            $('#waiter').hide();
         });
     }
 }
