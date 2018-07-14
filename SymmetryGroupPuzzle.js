@@ -1,6 +1,13 @@
 // SymmetryGroupPuzzle.js
 
 // TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
+// TODO: Support saving/restoring a puzzle's state in client cache (cookies)?
+// TODO: We might get better animation if we choose to animate just one of the captured shapes as we are now,
+//       but have all other captured shapes slave to that shape (that is, maintain relative position/orientation
+//       with the anchor shape.)  Before animation begins, the relative transform is calculated, then each frame,
+//       the slave shape's animation transform is calculated as a function of the anchor shape's animation transform
+//       and the pre-calculated relative transform.  Choose which shape is the anchor shape, though, is not clear.
+//       Perhaps it should simply be the shape most in the center of all captured shapes.
 
 class Puzzle {
     constructor() {
