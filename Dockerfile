@@ -1,6 +1,6 @@
 # Use an official Python runtime as our parent image.  Notice that it is windows-based.
 # We need this so that, in theory, our .pyd file will run, since it targets windows with 64-bit Python installed.
-FROM python:3.6.6-windowsservercore-1709
+FROM python:3.6.6-windowsservercore-ltsc2016
 
 # Here I think we're creating a new directory called "app" in the image's file system,
 # and then copying all of our crap into that directory.
