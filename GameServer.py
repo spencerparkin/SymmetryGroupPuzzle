@@ -23,6 +23,16 @@ class GameServer(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    def test_import(self, **kwargs):
+        result = {}
+        try:
+            from PyPermGroup import StabChain
+        except Exception as ex:
+            result['error'] = str(ex)
+        return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
     def puzzle_count(self, **kwargs):
         count = 0
         while True:
