@@ -123,9 +123,6 @@ class Puzzle {
         let blendFactorLoc = gl.getUniformLocation(mesh_shader_program.program, 'blend_factor');
         gl.uniform4f(blendFactorLoc, 1.0, 1.0, 1.0, 1.0);
 
-        let constColorLoc = gl.getUniformLocation(mesh_shader_program.program, 'const_color');
-        gl.uniform4f(constColorLoc, 1.0, 0.0, 0.0, 0.9);
-
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.type === 'picture_mesh') {
