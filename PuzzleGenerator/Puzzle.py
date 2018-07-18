@@ -246,8 +246,12 @@ class Puzzle(object):
         for i, cut_region in enumerate(self.cut_region_list):
             mesh_file = self.Name() + '_CaptureMesh%d.json' % i
             mesh = cut_region.region.GenerateMesh()
+            outline_mesh = cut_region.region.GenerateLineMesh()
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
-                mesh_handle.write(json.dumps({'mesh': mesh.Serialize(), 'outline': cut_region.region.Serialize()}, sort_keys=True, indent=4, separators=(',', ': ')))
+                mesh_handle.write(json.dumps({
+                    'mesh': mesh.Serialize(),
+                    'outline_mesh': outline_mesh.Serialize()
+                }, sort_keys=True, indent=4, separators=(',', ': ')))
             mesh_list.append({
                 'file': mesh_file,
                 'type': 'capture_mesh',
@@ -261,7 +265,9 @@ class Puzzle(object):
         for i, polygon in enumerate(polygon_list):
             mesh_file = self.Name() + '_PictureMesh%d.json' % i
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
-                mesh_handle.write(json.dumps({'mesh': polygon.mesh.Serialize()}, sort_keys=True, indent=4, separators=(',', ': ')))
+                mesh_handle.write(json.dumps({
+                    'mesh': polygon.mesh.Serialize()
+                }, sort_keys=True, indent=4, separators=(',', ': ')))
             mesh_list.append({
                 'file': mesh_file,
                 'type': 'picture_mesh',
