@@ -241,12 +241,13 @@ class Puzzle(object):
         # Finally, write out the level file along with its accompanying mesh files.
         # Note that I think we can calculate UVs as a function of the object-space coordinates in the shader.
         print('Writing level files...')
+        outline_thickness = rect.Width() / 100.0
         preview_image.save(puzzle_folder + '/' + self.Name() + '_Icon.png')
         mesh_list = []
         for i, cut_region in enumerate(self.cut_region_list):
             mesh_file = self.Name() + '_CaptureMesh%d.json' % i
             mesh = cut_region.region.GenerateMesh()
-            outline_mesh = cut_region.region.GenerateLineMesh()
+            outline_mesh = cut_region.region.GenerateLineMesh(outline_thickness)
             with open(puzzle_folder + '/' + mesh_file, 'w') as mesh_handle:
                 mesh_handle.write(json.dumps({
                     'mesh': mesh.Serialize(),
