@@ -341,7 +341,7 @@ class Puzzle {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
             if(mesh.type === 'capture_mesh' && mesh.ContainsPoint(point)) {
-                let area = mesh.CalcArea();
+                let area = mesh.buffers.CalcArea();
                 if(area < smallest_area) {
                     smallest_area = area;
                     j = i;
@@ -352,18 +352,103 @@ class Puzzle {
     }
 }
 
-class Mesh {
-    constructor(mesh_data) {
-        this.type = mesh_data['type'];
-        this.local_to_world = mat3.create();
-        this.anim_local_to_world = mat3.create();
+class MeshBuffers {
+    constructor() {
         this.center = vec2.create();
         this.triangle_list = [];
         this.vertex_list = [];
         this.index_buffer = null;
         this.vertex_buffer = null;
-        this.line_vertex_buffer = null;
-        this.line_count = 0;
+    }
+    
+    Release() {
+        if(this.index_buffer !== null) {
+            gl.deleteBuffer(this.index_buffer);
+            this.index_buffer = null;
+        }
+        if(this.vertex_buffer !== null) {
+            gl.deleteBuffer(this.vertex_buffer);
+            this.vertex_buffer = null;
+        }
+    }
+    
+    Make(triangle_list, vertex_list) {
+        this.triangle_list = triangle_list;
+        this.vertex_list = vertex_list;
+        this.index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.MakeIndexBufferData(), gl.STATIC_DRAW);
+        this.vertex_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.MakeVertexBufferData(), gl.STATIC_DRAW);
+    }
+    
+    MakeIndexBufferData() {
+        let index_list = [];
+        for(let i = 0; i < this.triangle_list.length; i++) {
+            for(let j = 0; j < 3; j++) {
+                index_list.push(this.triangle_list[i][j]);
+            }
+        }
+        return new Uint16Array(index_list);
+    }
+    
+    MakeVertexBufferData() {
+        let vertex_list = [];
+        for(let i = 0; i < this.vertex_list.length; i++) {
+            let vertex = this.vertex_list[i];
+            vertex_list.push(vertex['x']);
+            vertex_list.push(vertex['y']);
+        }
+        return new Float32Array(vertex_list);
+    }
+    
+    CalcCenter() {
+        vec2.set(this.center, 0.0, 0.0);
+        for(let i = 0; i < this.vertex_list.length; i++)
+            vec2.add(this.center, this.center, this.GetVertex(i));
+        vec2.scale(this.center, this.center, 1.0 / this.vertex_list.length);
+    }
+    
+    CalcArea() {
+        let total_area = 0.0;
+        for(let i = 0; i < this.triangle_list.length; i++) {
+            let triangle = this.triangle_list[i];
+            let edge_vector_a = vec2.create();
+            let edge_vector_b = vec2.create();
+            vec2.sub(edge_vector_a, this.GetVertex(triangle[1]), this.GetVertex(triangle[0]));
+            vec2.sub(edge_vector_b, this.GetVertex(triangle[2]), this.GetVertex(triangle[0]));
+            let result = vec3.create();
+            vec2.cross(result, edge_vector_a, edge_vector_b);
+            let area = Math.abs(result[2]);
+            total_area += area;
+        }
+        return total_area;
+    }
+    
+    GetVertex(i) {
+        let vertex_data = this.vertex_list[i];
+        let vertex = vec2.create();
+        vec2.set(vertex, vertex_data['x'], vertex_data['y']);
+        return vertex;
+    }
+    
+    Render(localVertexLoc) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
+        gl.vertexAttribPointer(localVertexLoc, 2, gl.FLOAT, false, 8, 0);
+        gl.enableVertexAttribArray(localVertexLoc);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
+        gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
+    }
+}
+
+class Mesh {
+    constructor(mesh_data) {
+        this.type = mesh_data['type'];
+        this.local_to_world = mat3.create();
+        this.anim_local_to_world = mat3.create();
+        this.buffers = new MeshBuffers();
+        this.outline_buffers = new MeshBuffers();
         if('symmetry_list' in mesh_data) {
             this.symmetry_list = [];
             for(let i = 0; i < mesh_data['symmetry_list'].length; i++) {
@@ -386,20 +471,10 @@ class Mesh {
             this.perm_list = mesh_data['permutation_list'];
         }
     }
-
+    
     ReleaseBuffers() {
-        if(this.index_buffer !== null) {
-            gl.deleteBuffer(this.index_buffer);
-            this.index_buffer = null;
-        }
-        if(this.vertex_buffer !== null) {
-            gl.deleteBuffer(this.vertex_buffer);
-            this.vertex_buffer = null;
-        }
-        if(this.line_vertex_buffer !== null) {
-            gl.deleteBuffer(this.line_vertex_buffer);
-            this.line_vertex_buffer = null;
-        }
+        this.buffers.Release();
+        this.outline_buffers.Release();
     }
     
     Promise(source) {
@@ -409,20 +484,10 @@ class Mesh {
                 dataType: 'json',
                 success: mesh_data => {
                     this.ReleaseBuffers();
-                    this.triangle_list = mesh_data.mesh.triangle_list;
-                    this.vertex_list = mesh_data.mesh.vertex_list;
-                    this.index_buffer = gl.createBuffer();
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
-                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.MakeIndexBufferData(), gl.STATIC_DRAW);
-                    this.vertex_buffer = gl.createBuffer();
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, this.MakeVertexBufferData(), gl.STATIC_DRAW);
-                    this.CalcCenter();
-                    if('outline' in mesh_data) {
-                        this.line_vertex_buffer = gl.createBuffer();
-                        gl.bindBuffer(gl.ARRAY_BUFFER, this.line_vertex_buffer);
-                        gl.bufferData(gl.ARRAY_BUFFER, this.MakeLineVertexBufferData(mesh_data.outline), gl.STATIC_DRAW);
-                    }
+                    this.buffers.Make(mesh_data.mesh.triangle_list, mesh_data.mesh.vertex_list);
+                    if('outline_mesh' in mesh_data)
+                        this.outline_buffers.Make(mesh_data.outline_mesh.triangle_list, mesh_data.outline_mesh.vertex_list);
+                    this.buffers.CalcCenter();
                     resolve();
                 },
                 failure: error => {
@@ -433,13 +498,6 @@ class Mesh {
         });
     }
     
-    CalcCenter() {
-        vec2.set(this.center, 0.0, 0.0);
-        for(let i = 0; i < this.vertex_list.length; i++)
-            vec2.add(this.center, this.center, this.GetVertex(i));
-        vec2.scale(this.center, this.center, 1.0 / this.vertex_list.length);
-    }
-    
     Render(localVertexLoc, localToWorldLoc, animation_enabled, render_mesh=true, render_outline=false) {
         let local_to_world = this.local_to_world;
         if(animation_enabled)
@@ -448,21 +506,11 @@ class Mesh {
         gl.uniformMatrix3fv(localToWorldLoc, false, local_to_world);
         
         if(render_mesh) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertex_buffer);
-            gl.vertexAttribPointer(localVertexLoc, 2, gl.FLOAT, false, 8, 0);
-            gl.enableVertexAttribArray(localVertexLoc);
-            
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
-            
-            gl.drawElements(gl.TRIANGLES, this.triangle_list.length * 3, gl.UNSIGNED_SHORT, 0);
+            this.buffers.Render(localVertexLoc);
         }
         
-        if(render_outline && this.line_vertex_buffer !== null) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.line_vertex_buffer);
-            gl.vertexAttribPointer(localVertexLoc, 2, gl.FLOAT, false, 8, 0);
-            gl.enableVertexAttribArray(localVertexLoc);
-            
-            gl.drawArrays(gl.LINES, 0, this.line_count * 2);
+        if(render_outline) {
+            this.outline_buffers.Render(localVertexLoc);
         }
     }
     
@@ -518,8 +566,8 @@ class Mesh {
             let center0 = vec2.create();
             let center1 = vec2.create();
             
-            vec2.transformMat3(center0, this.center, this.anim_local_to_world);
-            vec2.transformMat3(center1, this.center, this.local_to_world);
+            vec2.transformMat3(center0, this.buffers.center, this.anim_local_to_world);
+            vec2.transformMat3(center1, this.buffers.center, this.local_to_world);
             
             let interpolated_center = vec2.create();
             vec2.lerp(interpolated_center, center0, center1, lerp);
@@ -531,7 +579,7 @@ class Mesh {
             interpolated_orient[3] = anim_y_axis[1];
             
             let anim_translation = vec2.create();
-            vec2.transformMat2(anim_translation, this.center, interpolated_orient);
+            vec2.transformMat2(anim_translation, this.buffers.center, interpolated_orient);
             vec2.scale(anim_translation, anim_translation, -1.0);
             vec2.add(anim_translation, anim_translation, interpolated_center);
             
@@ -566,59 +614,16 @@ class Mesh {
         return result;
     }
     
-    MakeIndexBufferData() {
-        let index_list = [];
-        for(let i = 0; i < this.triangle_list.length; i++) {
-            for(let j = 0; j < 3; j++) {
-                index_list.push(this.triangle_list[i][j]);
-            }
-        }
-        return new Uint16Array(index_list);
-    }
-    
-    MakeVertexBufferData() {
-        let vertex_list = [];
-        for(let i = 0; i < this.vertex_list.length; i++) {
-            let vertex = this.vertex_list[i];
-            vertex_list.push(vertex['x']);
-            vertex_list.push(vertex['y']);
-        }
-        return new Float32Array(vertex_list);
-    }
-    
-    MakeLineVertexBufferData(outline) {
-        this.line_count = 0;
-        let vertex_list = [];
-        for(let i = 0; i < outline.sub_region_list.length; i++) {
-            let sub_region = outline.sub_region_list[i];
-            let polygon_list = [sub_region.border_polygon];
-            polygon_list = polygon_list.concat(sub_region.hole_list);
-            for(let j = 0; j < polygon_list.length; j++) {
-                let polygon = polygon_list[j];
-                for(let k = 0; k < polygon.vertex_list.length; k++) {
-                    let vertex = polygon.vertex_list[k];
-                    vertex_list.push(vertex['x']);
-                    vertex_list.push(vertex['y']);
-                    vertex = polygon.vertex_list[(k + 1) % polygon.vertex_list.length];
-                    vertex_list.push(vertex['x']);
-                    vertex_list.push(vertex['y']);
-                    this.line_count++;
-                }
-            }
-        }
-        return new Float32Array(vertex_list);
-    }
-    
     CapturesMesh(mesh) {
         if(this.type === 'capture_mesh' && mesh.type == 'picture_mesh') {
             // The puzzle is built such that no picture mesh straddles the boundary of a capture mesh.
             // It follows that to conclude a given mesh is completely covered by the capture mesh,
             // we need only check that any arbitrarily chosen _interior_ point of the given mesh is
             // inside any triangle of this, the capture mesh.
-            let triangle = mesh.triangle_list[0];
-            let point_a = mesh.GetVertex(triangle[0]);
-            let point_b = mesh.GetVertex(triangle[1]);
-            let point_c = mesh.GetVertex(triangle[2]);
+            let triangle = mesh.buffers.triangle_list[0];
+            let point_a = mesh.buffers.GetVertex(triangle[0]);
+            let point_b = mesh.buffers.GetVertex(triangle[1]);
+            let point_c = mesh.buffers.GetVertex(triangle[2]);
             let interior_point = vec2.create();
             vec2.add(interior_point, point_a, point_b);
             vec2.add(interior_point, interior_point, point_c);
@@ -632,15 +637,15 @@ class Mesh {
     
     ContainsPoint(point) {
         let eps = 0.001;
-        for(let i = 0; i < this.triangle_list.length; i++) {
-            let triangle = this.triangle_list[i];
+        for(let i = 0; i < this.buffers.triangle_list.length; i++) {
+            let triangle = this.buffers.triangle_list[i];
             let j = 0;
             for(j = 0; j < 3; j++) {
                 let k = (j + 1) % 3;
                 let edge_vector = vec2.create();
-                vec2.sub(edge_vector, this.GetVertex(triangle[k]), this.GetVertex(triangle[j]));
+                vec2.sub(edge_vector, this.buffers.GetVertex(triangle[k]), this.buffers.GetVertex(triangle[j]));
                 let vector = vec2.create();
-                vec2.sub(vector, point, this.GetVertex(triangle[j]));
+                vec2.sub(vector, point, this.buffers.GetVertex(triangle[j]));
                 let result = vec3.create();
                 vec2.cross(result, edge_vector, vector);
                 if(result[2] < -eps)
@@ -650,29 +655,6 @@ class Mesh {
                 return true;
         }
         return false;
-    }
-    
-    CalcArea() {
-        let total_area = 0.0;
-        for(let i = 0; i < this.triangle_list.length; i++) {
-            let triangle = this.triangle_list[i];
-            let edge_vector_a = vec2.create();
-            let edge_vector_b = vec2.create();
-            vec2.sub(edge_vector_a, this.GetVertex(triangle[1]), this.GetVertex(triangle[0]));
-            vec2.sub(edge_vector_b, this.GetVertex(triangle[2]), this.GetVertex(triangle[0]));
-            let result = vec3.create();
-            vec2.cross(result, edge_vector_a, edge_vector_b);
-            let area = Math.abs(result[2]);
-            total_area += area;
-        }
-        return total_area;
-    }
-    
-    GetVertex(i) {
-        let vertex_data = this.vertex_list[i];
-        let vertex = vec2.create();
-        vec2.set(vertex, vertex_data['x'], vertex_data['y']);
-        return vertex;
     }
 }
 
