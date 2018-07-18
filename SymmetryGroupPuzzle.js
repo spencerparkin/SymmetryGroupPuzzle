@@ -795,9 +795,10 @@ var OnCanvasMouseWheel = event => {
             // if the shape has rotational symmetry.
             let j = event.deltaY > 0 ? 1 : 0;
             puzzle.move_queue.push([i, j]);
-            event.preventDefault();
         }
     }
+    // If the mouse is in the canvas area, always prevent scrolling.
+    event.preventDefault();
 }
 
 var OnCanvasMouseMove = event => {
