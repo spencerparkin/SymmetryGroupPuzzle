@@ -23,23 +23,6 @@ class GameServer(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def test_import(self, **kwargs):
-        result = {}
-        try:
-            import importlib
-            spec = importlib.util.find_spec('PyPermGroup')
-            if spec is None:
-                raise Exception('No spec found!')
-            mod = importlib.util.module_from_spec(spec)
-            if mod is None:
-                raise Exception('Failed to create module from spec!')
-            spec.loader.exec_module(mod)
-        except Exception as ex:
-            result['error'] = str(ex)
-        return result
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
     def puzzle_count(self, **kwargs):
         count = 0
         while True:

@@ -843,23 +843,6 @@ var OnSolveButtonClicked = () => {
     puzzle.QueueSolutionMoves(puzzle_number);
 }
 
-var OnTestImport = () => {
-    $.ajax({
-        url: 'test_import',
-        dataType: 'json',
-        success: json_data => {
-            if('error' in json_data) {
-                alert('Error: ' + json_data['error']);
-            } else {
-                alert('No error!');
-            }
-        },
-        failure: error => {
-            alert(error);
-        }
-    });
-}
-
 var OnAnimationToggleClicked = () => {
     puzzle.AdvanceAnimation(true);
 }
