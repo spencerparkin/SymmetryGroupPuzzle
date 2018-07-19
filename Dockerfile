@@ -2,10 +2,10 @@
 # We need this so that, in theory, our .pyd file will run, since it targets windows with 64-bit Python installed.
 FROM python:3.6.6-windowsservercore-ltsc2016
 
-# Here I think we're creating a new directory called "app" in the image's file system,
+# Here I think we're creating a new directory called "opt/webapp" in the image's file system,
 # and then copying all of our crap into that directory.
-WORKDIR /app
-ADD . /app
+ADD . /opt/webapp
+WORKDIR /opt/webapp
 
 # Make sure our module dependencies are installed, except for our custom dependencies, of course.
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
