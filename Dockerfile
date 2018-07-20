@@ -12,10 +12,10 @@ WORKDIR /opt/webapp
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 # Note that this is not supported by heroku.  We'll be using the $PORT env-var instead.
-EXPOSE 80
+#EXPOSE 80
 
 # This is just for testing purposes.  Heroku sets this up for us but we'll do it for now.
-ENV PORT 80
+#ENV PORT 80
 
 # Run our CherryPy-based HTTP server.
 CMD ["python3", "GameServer.py"]
