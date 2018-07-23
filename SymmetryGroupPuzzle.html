@@ -14,13 +14,16 @@
 </head>
 <body>
     <image src="Images/logo.png"/>
-    <div class="puzzle_menu" id="puzzle_menu">
-    </div>
+    
+    <span id="waiter" class="waiter"></span>
     <h3 id="puzzle_name"></h3>
-    <div id="waiter" class="waiter"></div>
-    <br>
-    <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
-    <br>
+    <div class="puzzle_box">
+        
+        <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
+        <div class="puzzle_menu" id="puzzle_menu"></div>
+        
+    </div>
+    
     <input id="hover_highlights_check" type="checkbox" checked>Hover Highlights</input>
     <input id="animation_check" type="checkbox" onclick="OnAnimationToggleClicked()">Animate</input>
     <input id="initial_scramble_check" type="checkbox" checked>Initial Scramble</input>
@@ -28,7 +31,6 @@
     <button id="solve_button" type="button" onclick="OnSolveButtonClicked()">Solve!</button>
     <button type="button" onclick="OnPrevImageButtonClicked()">Prev Image</button>
     <button type="button" onclick="OnNextImageButtonClicked()">Next Image</button>
-    <br>
     Animation Speed: <input type="range" min="0" max="100" value="50" step="1" id="animation_range" oninput="OnAnimationSliderMoved(this.value)">
     <h2>Introduction</h2>
     <p>

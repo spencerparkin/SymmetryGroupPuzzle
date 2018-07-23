@@ -1,35 +1,27 @@
-body {
-    font-family: "Times New Roman", Times, serif;
-	text-align: center;
-}
-
-p {
-    text-align: left;
-    margin-left: 100px;
-    margin-right: 100px;
-    line-height: 1.8;
-    text-align: justify;
-    text-justify: inter-word;
-}
-
 canvas {
 	border: 1px solid black;
-	width: 900px;
-	height: 900px;
+	width: 800px;
+	height: 800px;
 }
 
 p, h1, h2, h3 {
     font-family: 'Roboto', sans-serif;
 }
 
+div.puzzle_box {
+}
+
 div.puzzle_menu {
+    float: left;
     background-color: #FFF;
-    overflow: auto;
+    overflow-y: auto;
     white-space: nowrap;
+    height: 800px;
+    width: fit-content;
 }
 
 div.puzzle_menu img {
-    display: inline-block;
+    display: block;
     padding: 0px;
 }
 
