@@ -1,7 +1,6 @@
 // SymmetryGroupPuzzle.js
 
 // TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
-// TODO: Support saving/restoring a puzzle's state in client cache (cookies)?
 // TODO: We might get better animation if we choose to animate just one of the captured shapes as we are now,
 //       but have all other captured shapes slave to that shape (that is, maintain relative position/orientation
 //       with the anchor shape.)  Before animation begins, the relative transform is calculated, then each frame,
@@ -18,6 +17,28 @@ class Puzzle {
         this.move_queue = [];
         this.permutation = [];
         this.animation_lerp = 0.05;
+    }
+    
+    SavePuzzleState() {
+        let state = {
+            'mesh_list': [],
+            'permutation': this.permutation
+        }
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            let mesh_state = mesh.SaveState();
+            state['mesh_list'].push(mesh_state);
+        }
+        return state;
+    }
+    
+    LoadPuzzleState(state) {
+        this.permutation = state['permutation'];
+        for(let i = 0; i < state['mesh_list'].length; i++) {
+            let mesh_state = state['mesh_list'][i];
+            let mesh = this.mesh_list[i];
+            mesh.LoadState(mesh_state);
+        }
     }
     
     PromiseComputerCanSolve(puzzle_number) {
@@ -472,6 +493,24 @@ class Mesh {
         }
     }
     
+    SaveState() {
+        let state = {
+            'local_to_world': this.local_to_world
+        }
+        return state;
+    }
+    
+    LoadState(state) {
+        let local_to_world = state['local_to_world'];
+        let float_list = [];
+        let i = 0;
+        while(i in local_to_world) {
+            float_list.push(local_to_world[i]);
+            i++;
+        }
+        this.local_to_world = new Float32Array(float_list);
+    }
+    
     ReleaseBuffers() {
         this.buffers.Release();
         this.outline_buffers.Release();
@@ -874,6 +913,26 @@ var OnIntervalHit = () => {
         puzzle.AdvanceAnimation();
         puzzle.Render();
         settle_render = true;
+    }
+}
+
+var OnSavePuzzleClicked = () => {
+    let key = 'Puzzle_' + puzzle_number.toString();
+    let state = puzzle.SavePuzzleState();
+    state = JSON.stringify(state);
+    localStorage.setItem(key, state);
+    alert('Puzzle state saved!');
+}
+
+var OnLoadPuzzleClicked = () => {
+    let key = 'Puzzle_' + puzzle_number.toString();
+    let state = localStorage.getItem(key);
+    if(!state)
+        alert('No puzzle state saved that we can load!');
+    else {
+        state = JSON.parse(state);
+        puzzle.LoadPuzzleState(state);
+        puzzle.Render();
     }
 }
 
