@@ -17,21 +17,31 @@
     
     <span id="waiter" class="waiter"></span>
     <h3 id="puzzle_name"></h3>
-    <div class="puzzle_box">
-        
-        <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
-        <div class="puzzle_menu" id="puzzle_menu"></div>
-        
+    <div class="puzzle_options_div">
+        <form class="puzzle_options_form">
+            <fieldset>
+                <legend>Puzzle Options:</legend>
+                <p>
+                    <button class="button" type="button" onclick="OnPrevImageButtonClicked()">Prev Image</button>
+                    <button class="button" type="button" onclick="OnNextImageButtonClicked()">Next Image</button>
+                </p>
+                <p><input id="hover_highlights_check" type="checkbox" checked>Hover Highlights</input></p>
+                <p><input id="animation_check" type="checkbox" onclick="OnAnimationToggleClicked()">Animate</input></p>
+                <p><input id="initial_scramble_check" type="checkbox" checked>Initial Scramble</input></p>
+                <p><label for="animation_range">Animation Speed:</label><input type="range" min="0" max="100" value="50" step="1" id="animation_range" oninput="OnAnimationSliderMoved(this.value)"></p>
+                <p>
+                    <button class="button" type="button" onclick="OnScrambleButtonClicked()">Scramble!</button>
+                    <button class="button" id="solve_button" type="button" onclick="OnSolveButtonClicked()">Solve!</button>
+                </p>
+                <p>
+                    <button class="button" type="button" onclick="OnSavePuzzleClicked()">Save State</button>
+                    <button class="button" type="button" onclick="OnLoadPuzzleClicked()">Load State</button>
+                </p>
+            </fieldset>
+        </form>
     </div>
-    
-    <input id="hover_highlights_check" type="checkbox" checked>Hover Highlights</input>
-    <input id="animation_check" type="checkbox" onclick="OnAnimationToggleClicked()">Animate</input>
-    <input id="initial_scramble_check" type="checkbox" checked>Initial Scramble</input>
-    <button type="button" onclick="OnScrambleButtonClicked()">Scramble!</button>
-    <button id="solve_button" type="button" onclick="OnSolveButtonClicked()">Solve!</button>
-    <button type="button" onclick="OnPrevImageButtonClicked()">Prev Image</button>
-    <button type="button" onclick="OnNextImageButtonClicked()">Next Image</button>
-    Animation Speed: <input type="range" min="0" max="100" value="50" step="1" id="animation_range" oninput="OnAnimationSliderMoved(this.value)">
+    <div class="puzzle_menu" id="puzzle_menu"></div>
+    <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
     <h2>Introduction</h2>
     <p>
         Welcome!  This page features a kind of twisty puzzle based upon the symmetries of overlapping shapes.
