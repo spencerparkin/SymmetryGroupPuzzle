@@ -312,7 +312,7 @@ class Puzzle {
         // are inverses of one another, so we can easily invert the move here.
         // If there is only 1 symmetry of the shape, however, it is a reflection.
         let move_inverted = [move[0], move[1]];
-        if(move[1] < 2 && this.mesh_list[move[0]].perm_list.length > 1)
+        if(move[1] < 2 && this.mesh_list[move[0]].symmetry_list.length > 1)
             move_inverted = [move[0], 1 - move[1]];
         return move_inverted;
     }
