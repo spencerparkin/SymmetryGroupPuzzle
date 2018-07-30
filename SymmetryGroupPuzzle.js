@@ -1,7 +1,6 @@
 // SymmetryGroupPuzzle.js
 
 // TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.  Show move count.
-// TODO: It might be nice if the user could use their own background image.
 // TODO: We might get better animation if we choose to animate just one of the captured shapes as we are now,
 //       but have all other captured shapes slave to that shape (that is, maintain relative position/orientation
 //       with the anchor shape.)  Before animation begins, the relative transform is calculated, then each frame,
@@ -866,6 +865,25 @@ var ChangeImage = (delta) => {
             $('#waiter').hide();
         });
     }
+}
+
+var OnUseCustomImageButtonClicked = () => {
+    let custom_image_input = document.getElementById('custom_image_file');
+    let files = custom_image_input.files;
+    if(files.length == 0) {
+        alert('You must select an image file first.');
+        return;
+    }
+    let file_reader = new FileReader();
+    $('#waiter').show();
+    file_reader.onload = () => {
+        picture_mesh_texture.source = file_reader.result;
+        PromiseTexture(picture_mesh_texture).then(() => {
+            puzzle.Render();
+            $('#waiter').hide();
+        });
+    }
+    file_reader.readAsDataURL(files[0]);
 }
 
 var OnNextImageButtonClicked = () => {
