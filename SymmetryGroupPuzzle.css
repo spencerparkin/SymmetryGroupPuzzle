@@ -65,6 +65,10 @@ div.puzzle_options_div fieldset {
     transform: translateY(4px);
 }
 
+.button:disabled {
+    background-color: grey;
+}
+
 .waiter {
     border: 16px solid #f3f3f3;
     border-radius: 50%;

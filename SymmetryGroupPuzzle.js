@@ -1,6 +1,5 @@
 // SymmetryGroupPuzzle.js
 
-// TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.  Show move count.
 // TODO: We might get better animation if we choose to animate just one of the captured shapes as we are now,
 //       but have all other captured shapes slave to that shape (that is, maintain relative position/orientation
 //       with the anchor shape.)  Before animation begins, the relative transform is calculated, then each frame,
@@ -15,6 +14,8 @@ class Puzzle {
         this.window_max_point = vec2.create();
         this.highlight_mesh = -1;
         this.move_queue = [];
+        this.move_history = [];
+        this.move_history_location = 0;
         this.permutation = [];
         this.animation_lerp = 0.05;
     }
@@ -22,6 +23,8 @@ class Puzzle {
     SavePuzzleState() {
         let state = {
             'mesh_list': [],
+            'move_history': this.move_history,
+            'move_history_location': this.move_history_location,
             'permutation': this.permutation
         }
         for(let i = 0; i < this.mesh_list.length; i++) {
@@ -34,6 +37,8 @@ class Puzzle {
     
     LoadPuzzleState(state) {
         this.permutation = state['permutation'];
+        this.move_history = state['move_history'];
+        this.move_history_location = state['move_history_location'];
         for(let i = 0; i < state['mesh_list'].length; i++) {
             let mesh_state = state['mesh_list'][i];
             let mesh = this.mesh_list[i];
@@ -106,6 +111,8 @@ class Puzzle {
                         this.permutation = [];
                         if(document.getElementById('initial_scramble_check').checked)
                             this.QueueScrambleMoves(50);
+                        this.ClearHistory();
+                        UpdateUndoRedoButtons();
                         resolve();
                     });
                 },
@@ -197,6 +204,34 @@ class Puzzle {
             let symmetry_perm = capture_mesh.perm_list[move[1]];
             this.permutation = this.MultiplyPerms(symmetry_perm, this.permutation);
         }
+        
+        if(move[2]) {
+            this.move_history = this.move_history.slice(0, this.move_history_location + 1);
+            this.move_history.push([move[0], move[1], false]);
+            this.move_history_location = this.move_history.length;
+            UpdateUndoRedoButtons();
+        }
+    }
+    
+    QueueUndoMove() {
+        if(this.move_history_location > 0) {
+            this.move_history_location--;
+            let move = this.move_history[this.move_history_location];
+            move = this.InvertMove(move);
+            this.move_queue.push(move);
+        }
+    }
+    
+    QueueRedoMove() {
+        if(this.move_history_location < this.move_history.length) {
+            this.move_queue.push(this.move_history[this.move_history_location]);
+            this.move_history_location++;
+        }
+    }
+    
+    ClearHistory() {
+        this.move_history = [];
+        this.move_history_location = 0;
     }
     
     QueueScrambleMoves(count) {
@@ -216,7 +251,7 @@ class Puzzle {
             j = capture_mesh_list[j];
             let mesh = this.mesh_list[j];
             let k = Math.floor(Math.random() * mesh.symmetry_list.length);
-            this.move_queue.push([j, k]);
+            this.move_queue.push([j, k, false]);
         }
     }
     
@@ -260,13 +295,9 @@ class Puzzle {
                 let element = inv_perm['word'][i];
                 for(let j = 0; j < Math.abs(element['exponent']); j++) {
                     let move = move_map[element['name']];
-                    // Reflections are their own inverse.  The only 2 rotations (the first two)
-                    // are inverses of one another, so we can easily invert the move here.
-                    // If there is only 1 symmetry of the shape, however, it is a reflection.
-                    if(element['exponent'] < 0 && move[1] < 2 && this.mesh_list[move[0]].perm_list.length > 1) {
-                        move = [move[0], 1 - move[1]];
-                    }
-                    move_sequence.push(move);
+                    if(element['exponent'] < 0)
+                        move = this.InvertMove(move);
+                    move_sequence.push([move[0], move[1], false]);
                 }
             }
             let count = move_sequence.length;
@@ -274,6 +305,16 @@ class Puzzle {
                 this.move_queue = this.move_queue.concat(move_sequence);
             }
         });
+    }
+    
+    InvertMove(move) {
+        // Reflections are their own inverse.  The only 2 rotations (the first two)
+        // are inverses of one another, so we can easily invert the move here.
+        // If there is only 1 symmetry of the shape, however, it is a reflection.
+        let move_inverted = [move[0], move[1]];
+        if(move[1] < 2 && this.mesh_list[move[0]].perm_list.length > 1)
+            move_inverted = [move[0], 1 - move[1]];
+        return move_inverted;
     }
     
     ProcessNextMove() {
@@ -697,6 +738,23 @@ class Mesh {
     }
 }
 
+var UpdateUndoRedoButtons = () => {
+    let count = puzzle.move_history_location;
+    $('#move_history_text').text('Move Count: ' + count.toString());
+    $('#undo_button').attr('disabled', count > 0 ? false : true);
+    $('#redo_button').attr('disabled', count < puzzle.move_history.length ? false : true); 
+}
+
+var OnUndoMoveButtonClicked = () => {
+    puzzle.QueueUndoMove();
+    UpdateUndoRedoButtons();
+}
+
+var OnRedoMoveButtonClicked = () => {
+    puzzle.QueueRedoMove();
+    UpdateUndoRedoButtons();
+}
+
 var OnPuzzleMenuItemClicked = (i) => {
     puzzle_number = i;
     let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
@@ -819,7 +877,7 @@ var OnCanvasClicked = event => {
             }
         }
         if(j >= 0) {
-            puzzle.move_queue.push([i, j]);
+            puzzle.move_queue.push([i, j, true]);
         }
     }
 }
@@ -833,7 +891,7 @@ var OnCanvasMouseWheel = event => {
             // The first two symmetries are always CCW/CW rotations, respectively,
             // if the shape has rotational symmetry.
             let j = event.deltaY > 0 ? 1 : 0;
-            puzzle.move_queue.push([i, j]);
+            puzzle.move_queue.push([i, j, true]);
         }
     }
     // If the mouse is in the canvas area, always prevent scrolling.
@@ -895,10 +953,12 @@ var OnPrevImageButtonClicked = () => {
 }
 
 var OnScrambleButtonClicked = () => {
+    puzzle.ClearHistory();
     puzzle.QueueScrambleMoves(30);
 }
 
 var OnSolveButtonClicked = () => {
+    puzzle.ClearHistory();
     puzzle.QueueSolutionMoves(puzzle_number);
 }
 
@@ -952,6 +1012,7 @@ var OnLoadPuzzleClicked = () => {
         state = JSON.parse(state);
         puzzle.LoadPuzzleState(state);
         puzzle.Render();
+        UpdateUndoRedoButtons();
     }
 }
 

@@ -14,7 +14,6 @@
 </head>
 <body>
     <image src="Images/logo.png"/>
-    
     <span id="waiter" class="waiter"></span>
     <h3 id="puzzle_name"></h3>
     <div class="puzzle_options_div">
@@ -38,6 +37,11 @@
                 <p>
                     <button class="button" type="button" onclick="OnSavePuzzleClicked()">Save State</button>
                     <button class="button" type="button" onclick="OnLoadPuzzleClicked()">Load State</button>
+                </p>
+                <p id="move_history_text">Move History:</p>
+                <p>
+                    <button id="undo_button" class="button" type="button" onclick="OnUndoMoveButtonClicked()">Undo</button>
+                    <button id="redo_button" class="button" type="button" onclick="OnRedoMoveButtonClicked()">Redo</button>
                 </p>
             </fieldset>
         </form>
