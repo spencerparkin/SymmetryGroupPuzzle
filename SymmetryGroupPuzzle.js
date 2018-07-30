@@ -1,6 +1,7 @@
 // SymmetryGroupPuzzle.js
 
-// TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.
+// TODO: Once the puzzle mechanics are working, it would be really nice to have undo/redo.  Show move count.
+// TODO: It might be nice if the user could use their own background image.
 // TODO: We might get better animation if we choose to animate just one of the captured shapes as we are now,
 //       but have all other captured shapes slave to that shape (that is, maintain relative position/orientation
 //       with the anchor shape.)  Before animation begins, the relative transform is calculated, then each frame,
