@@ -184,7 +184,12 @@ class Puzzle {
     AdvanceAnimation(snap=false) {
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
-            if(mesh.type === 'picture_mesh')
+            if(mesh.type === 'picture_mesh' && mesh.master_mesh === null)
+                mesh.AdvanceAnimation(snap, this.animation_lerp)
+        }
+        for(let i = 0; i < this.mesh_list.length; i++) {
+            let mesh = this.mesh_list[i];
+            if(mesh.type === 'picture_mesh' && mesh.master_mesh !== null)
                 mesh.AdvanceAnimation(snap, this.animation_lerp)
         }
     }
@@ -192,11 +197,55 @@ class Puzzle {
     ApplyMove(move) {
         let capture_mesh = this.mesh_list[move[0]];
         let symmetry = capture_mesh.symmetry_list[move[1]];
+        let capture_list = [];
         for(let i = 0; i < this.mesh_list.length; i++) {
             let mesh = this.mesh_list[i];
-            if(mesh.type === 'picture_mesh' && capture_mesh.CapturesMesh(mesh)) {
-                mat3.mul(mesh.local_to_world, symmetry, mesh.local_to_world);
-                // TODO: Re-orthonormalize the mesh transform here to combat accumulated round-off error?
+            if(mesh.type === 'picture_mesh') {
+                mesh.slave_matrix = null;
+                mesh.master_mesh = null;
+                if(capture_mesh.CapturesMesh(mesh)) {
+                    mat3.mul(mesh.local_to_world, symmetry, mesh.local_to_world);
+                    // TODO: Re-orthonormalize the mesh transform here to combat accumulated round-off error?
+                    capture_list.push(mesh);
+                }
+            }
+        }
+        
+        let animation_enabled = $('#animation_check').is(':checked');
+        let animation_slaving = $('#animation_slaving_check').is(':checked');
+        if(animation_enabled && animation_slaving) {
+            // What's the general location of all meshes captured?
+            let average_center = vec2.create();
+            for(let i = 0; i < capture_list.length; i++) {
+                let mesh = capture_list[i];
+                let center = vec2.create();
+                vec2.transformMat3(center, mesh.buffers.center, mesh.local_to_world);
+                vec2.add(average_center, average_center, center);
+            }
+            vec2.scale(average_center, average_center, 1.0 / capture_list.length);
+            
+            // Which of the captured meshes is closest to this general location?
+            let master_mesh = null;
+            let smallest_distance = 999999.0;
+            for(let i = 0; i < capture_list.length; i++) {
+                let mesh = capture_list[i];
+                let distance = vec2.distance(mesh.buffers.center, average_center);
+                if(distance < smallest_distance) {
+                    smallest_distance = distance;
+                    master_mesh = mesh;
+                }
+            }
+            
+            // Slave all captured meshes to the chosen master mesh.
+            let master_local_to_world_inv = mat3.create();
+            mat3.invert(master_local_to_world_inv, master_mesh.local_to_world);
+            for(let i = 0; i < capture_list.length; i++) {
+                let mesh = capture_list[i];
+                if(mesh !== master_mesh) {
+                    mesh.master_mesh = master_mesh;
+                    mesh.slave_matrix = mat3.create();
+                    mat3.mul(mesh.slave_matrix, master_local_to_world_inv, mesh.local_to_world);
+                }
             }
         }
         
@@ -509,6 +558,8 @@ class Mesh {
         this.type = mesh_data['type'];
         this.local_to_world = mat3.create();
         this.anim_local_to_world = mat3.create();
+        this.slave_matrix = null;
+        this.master_mesh = null;
         this.buffers = new MeshBuffers();
         this.outline_buffers = new MeshBuffers();
         if('symmetry_list' in mesh_data) {
@@ -627,6 +678,8 @@ class Mesh {
     AdvanceAnimation(snap=false, lerp=0.1) {
         if(snap) {
             mat3.copy(this.anim_local_to_world, this.local_to_world);
+        } else if(this.slave_matrix !== null) {
+            mat3.mul(this.anim_local_to_world, this.master_mesh.anim_local_to_world, this.slave_matrix);
         } else {
             let anim_x_axis = vec2.create();
             let anim_y_axis = vec2.create();
