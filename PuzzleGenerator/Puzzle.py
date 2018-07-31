@@ -77,6 +77,41 @@ class Puzzle(object):
         # Some puzzles can give a better set of points to use for generating the associated group.
         return False
     
+    def DrawPreviewImage(self, graph, preview_image, rect, anti_alias=False, thickness=2.0):
+        preview_image_rect = AxisAlignedRectangle(Vector(0.0, 0.0), Vector(float(preview_image.width), float(preview_image.height)))
+        preview_draw = ImageDraw.Draw(preview_image)
+        if anti_alias:
+            for i in range(preview_image.width):
+                for j in range(preview_image.height):
+                    point = Vector(float(i), float(preview_image.height - 1- j))
+                    smallest_distance = 999999.0
+                    for edge in graph.GenerateEdgeSegments():
+                        edge = rect.Map(edge, preview_image_rect)
+                        distance = edge.Distance(point)
+                        if distance < smallest_distance:
+                            smallest_distance = distance
+                    if smallest_distance <= thickness:
+                        t = smallest_distance / thickness
+                        current_pixel = preview_image.getpixel((i, j))
+                        target_pixel = (0, 0, 0, 255)
+                        pixel = (
+                            int(round(float(current_pixel[0]) * t + float(target_pixel[0]) * (1.0 - t))),
+                            int(round(float(current_pixel[1]) * t + float(target_pixel[1]) * (1.0 - t))),
+                            int(round(float(current_pixel[2]) * t + float(target_pixel[2]) * (1.0 - t))),
+                            int(round(float(current_pixel[3]) * t + float(target_pixel[3]) * (1.0 - t))),
+                        )
+                        preview_draw.point((i, j), fill=pixel)
+        else:
+            for edge in graph.GenerateEdgeSegments():
+                edge = rect.Map(edge, preview_image_rect)
+                edge = [
+                    int(edge.point_a.x),
+                    preview_image.height - 1 - int(edge.point_a.y),
+                    int(edge.point_b.x),
+                    preview_image.height - 1 - int(edge.point_b.y)
+                ]
+                preview_draw.line(edge, fill=(0, 0, 0, 255), width=2)
+    
     def Generate(self, puzzle_folder, calc_solution, preview=None):
                
         # Go calculate all the needed symmetries of the cut-shape.
@@ -192,17 +227,7 @@ class Puzzle(object):
         rect.Scale(1.1)
         rect.ExpandToMatchAspectRatioOf(AxisAlignedRectangle(Vector(0.0, 0.0), Vector(1.0, 1.0)))
         preview_image = Image.new('RGBA', (128, 128), (255, 255, 255, 0))
-        preview_image_rect = AxisAlignedRectangle(Vector(0.0, 0.0), Vector(float(preview_image.width), float(preview_image.height)))
-        preview_draw = ImageDraw.Draw(preview_image)
-        for edge in graph.GenerateEdgeSegments():
-            edge = rect.Map(edge, preview_image_rect)
-            edge = [
-                int(edge.point_a.x),
-                preview_image.height - 1 - int(edge.point_a.y),
-                int(edge.point_b.x),
-                preview_image.height - 1 - int(edge.point_b.y)
-            ]
-            preview_draw.line(edge, fill=(0, 0, 0, 255), width=2)
+        self.DrawPreviewImage(graph, preview_image, rect, anti_alias=True)
         graph.Add(rect)
 
         # Before we can pull the empty cycles out of the graph, we need to merge all connected components into one.
