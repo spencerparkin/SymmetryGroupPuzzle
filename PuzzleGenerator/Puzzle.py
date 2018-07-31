@@ -6,7 +6,6 @@ import json
 
 sys.path.append(r'C:\dev\SymmetryGroupPuzzle')
 
-from PyPermGroup import Perm, StabChain
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from PyQt5 import QtGui, QtCore, QtWidgets
@@ -167,11 +166,13 @@ class Puzzle(object):
                         permutation.append(j)
                     cut_region.permutation_list.append(permutation)
                     if calc_solution:
+                        from PyPermGroup import Perm
                         generator_list.append(Perm(permutation))
 
         # If asked, try to find a stab-chain that can be used to solve the puzzle.
         stab_chain = None
         if calc_solution:
+            from PyPermGroup import StabChain
             # This is not necessarily the best base for solving the puzzle.
             base_array = [i for i in range(len(cloud.point_list))]
     
