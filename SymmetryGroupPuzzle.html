@@ -50,8 +50,8 @@
     <canvas id="canvas" onwheel="OnCanvasMouseWheel(event)"></canvas>
     <h2>Introduction</h2>
     <p>
-        Welcome!  This page features a kind of twisty puzzle based upon the symmetries of overlapping shapes.
-        Every shape of the plane has an associated group of symmetries (even if it's just the trivial group!)
+        This page features a kind of twisty puzzle based upon the symmetries of overlapping shapes.
+        Every shape (subset) of the plane has an associated group of symmetries (even if it's just the trivial group.)
         A symmetry of a shape is simply any way you can remove it from the plane (leaving a hole in its place),
         re-orient the shape in your hand, and then fit the shape back into the hole.  If we overlap a bunch of shapes
         in the plane, then we can get a larger group of transformations constructed from the individual symmetry groups
@@ -63,30 +63,27 @@
         The puzzle above is completely mouse driven.  Hovering over the desired shape, use the mouse wheel to
         rotate the shape clock-wise or counter-click-wise, if it has any rotational symmetry; or click on the
         shape to reflect it across an axis near the location of the mouse cursor, if it has any reflective symmetry.
-        That's it!  Notice that if you click on or hover over an area
+        That's all there is to it.  Notice that if you click on or hover over an area
         of a shape that overlaps with some other shape, then which shape is manipulated is determined by which
         shape has the least amount of area.  If both shapes have the same amount of area, then the computer
         chooses arbitrarily.  This isn't a problem as long as there is always a way to unambiguously choose
-        the desired shape.  Shapes that occupy disjoint regions of the plane present a bit of a problem with
+        the desired shape.  Shapes that occupy disjoint regions of the plane can present a bit of a problem with
         this style of interface that I have yet to resolve.
     </p>
     <p>
-        The menu up top lets you choose the puzzle you want to play.  A button below
-        lets you scramble the current puzzle.  (Push it a few times to get a good scramble.)
-        Notice that animation and hover-highlights can be toggled.
-        The highlights are useful for discovering the generators of a puzzle.
-        The animation was a fun experiment, but I prefer it off if I'm giving the puzzle any serious effort.
-        Two buttons let you cycle forward or backward through the possible puzzle background images.
+        Aside from the puzzle itself, a menu of puzzles and puzzle options are presented.
+        Choose which puzzle you want to try from the puzzle menu.  Most of the puzzle options
+        become self evident with some experimentation.  Notice that you can save and restore
+        puzzle state for any of the puzzles.  These states persist as long as you don't clear
+        your browser cache.
     </p>
     <h2>Group Theory</h2>
     <p>
-        Group theory is a beautiful subject, and among so many other things, provides a model for explaining
+        Group theory is a beautiful subject, and among so many other things, provides a model for
         twisty puzzles.  In particular, when you're playing with a twisty puzzle, you're working within a
-        permutation group.  (All groups are isomorphic to a group of permutations, but permutations themselves
-        provide the clearest model of what's going on physically with most twisty puzzles.)  Specifically,
-        a twist of the puzzle permutes the faces, shapes or stickers of that puzzle.  Multiple twists do the same,
-        and this provides us with the property of closure in groups.  Every twisty puzzle has a solved state,
-        the identity of the group.  And every configuration of the puzzle can be undone by some sequences of twists,
+        permutation group.  A twist of the puzzle permutes the faces, shapes or stickers of that puzzle.  Multiple twists do the same,
+        and this provides us with the property of closure; every twisty puzzle has a solved state,
+        the identity of the group; and every configuration of the puzzle can be undone by some sequences of twists,
         an inverse.
     </p>
     <p>
@@ -99,7 +96,7 @@
     </p>
     <h2>Conjugates & Commutators</h2>
     <p>
-        An interesting observation to make is that most of the useful move sequences found for solving a wide veriety
+        An interesting observation to make is that most of the useful move sequences found for solving a wide variety
         of twisty puzzles come in the form of conjugates and commutators.  If \(A\) and \(B\) are any two move
         sequences (any two permutations of our group \(G\)), then conjugates and commutators are of the form \(ABA^{-1}\) and \(ABA^{-1}B^{-1}\), respectively.
     </p>
@@ -110,7 +107,7 @@
         call \(\overline{A}\) the damage caused by \(A\).  That said, it is not hard to show that conjugation
         of \(A\) by some other permutation \(B\) does not increase or decrease the damage of that permutation.
         In math symbols, \(\overline{A}=\overline{BAB^{-1}}\).  So if the damage remains the same, what effect
-        does conjugation have?  The answer is that it focuses the damage to the twisty puzzle somewhere else!
+        does conjugation have?  The answer is that it focuses the damage to the twisty puzzle somewhere else.
         In other words, if we know how \(A\) damages (changes) a puzzle, then we can focus that change somewhere
         else on the puzzle using \(B\), which is commonly referred to as a setup move.
     </p>
@@ -120,6 +117,7 @@
         \(\overline{ABA^{-1}B^{-1}}<\mbox{min}\{\overline{A},\overline{B}\}\).  Commutators, therefore, provide
         a way to narrow the damage to a puzzle caused by a move sequence, which becomes increasingly important near the end of
         a solve.  The trick is to find move sequences \(A\) and \(B\) that almost commute, but not quite.
+        You might say that the damage of a commutator is a measure of how much \(A\) and \(B\) commute.
     </p>
     <h2>Stabilizer Chains</h2>
     <p>
@@ -145,24 +143,22 @@
         What I've done in the past is systematically and sometimes randomly generate elements of the group along with their
         factorizations, and then try to drop them into the chain where they fit best as new or replacement representatives for cosets.
         This process terminates when all representatives have been given factorizations, which can take a very long time.
-    </p>
-    <p>
-        If you've solved a Rubik's Cube, then you've surely used the stabilizer-chain concept, whether you realized it or not.
-        Whenever you've restricted yourself to a set of move sequences that alter the cube somehow, but preserve a certain
-        part of it, then you've been working in a stabilizer sub-group.
+        Nevertheless, once you have the stabilizer chain fully worded, it's ready to be used to quickly solve any state of the
+        associated puzzle.
     </p>
     <h2>The Puzzle Engine</h2>
     <p>
-        Implementing the above puzzle in Javascript was a challenge.  I went through a few different designs before
-        landing on what I believe is the best solution.  The puzzles are pre-built by a Python script that takes
+        The puzzles are pre-built by a Python script that takes
         as input the cut-shapes (generators) of the puzzle, and then outputs from that a set of pair-wise disjoint triangle meshes
         that fill the canvas.  These meshes are the moving parts of the puzzle, much like the cubies of a Rubik's Cube.
         An analogy is that the Python script takes as input the cut-planes and then cuts the cube to output the needed cubies.
         The client-side Javascript then needs only know how to move these pieces of the puzzle around.  It does this
         by, in addition to the said meshes, also receiving the original cut-shapes now turned capture-shapes.  The capture shapes, when applied, capture all
         meshes they cover, and then apply to those meshes a symmetry of the shape.  Naturally, the puzzle is in the solved
-        state whenever all local-to-world transforms of the triangle meshes are identity.  The implementation details can
-        be found <a href="https://github.com/spencerparkin/SymmetryGroupPuzzle" target="_blank">here</a>.
+        state whenever all local-to-world transforms of the triangle meshes are identity, although I can conceive of a puzzle
+        where, potentially, the picture may be restored and not all meshes have the identity transform, but for most puzzles,
+        a solved picture must require all meshes have identity.  In any case, the implementation details can
+        be found <a href="https://github.com/spencerparkin/SymmetryGroupPuzzle" target="_blank">here</a>, if anyone cares.
     </p>
     <h2>Feedback</h2>
     <p>
