@@ -5,6 +5,10 @@ canvas {
 	height: 800px;
 }
 
+body {
+    margin: 80px;
+}
+
 p, h1, h2, h3, button, legend {
     font-family: 'Roboto', sans-serif;
 }
@@ -16,6 +20,7 @@ div.puzzle_menu {
     white-space: nowrap;
     height: 800px;
     width: fit-content;
+    border: 1px solid black;
 }
 
 div.puzzle_menu img {
@@ -27,15 +32,16 @@ div.puzzle_menu img:hover {
     background-color: #777;
 }
 
-.puzzle_options_div {
+.puzzle_area {
     display: inline-block;
-    height: 800px;
 }
 
-div.puzzle_options_div fieldset {
+.puzzle_options {
+    display: inline-block;
     height: 800px;
-    float: left;
-    border-width: 0px;
+    float: right;
+    text-align: left;
+    border: 1px solid black;
 }
 
 .button {

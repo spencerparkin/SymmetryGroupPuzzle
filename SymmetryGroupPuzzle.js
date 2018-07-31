@@ -811,14 +811,14 @@ var OnRedoMoveButtonClicked = () => {
 var OnPuzzleMenuItemClicked = (i) => {
     puzzle_number = i;
     let puzzle_file = 'Puzzles/Puzzle' + puzzle_number.toString() + '.json';
-    $('#waiter').show();
+    $('#waiter').css('visibility', 'visible');
     Promise.all([
         puzzle.Promise(puzzle_file),
         puzzle.PromiseComputerCanSolve(puzzle_number)
     ]).then(() => {
         puzzle.Render();
         $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
-        $('#waiter').hide();
+        $('#waiter').css('visibility', 'hidden');
     });
 }
 
@@ -857,7 +857,7 @@ var picture_mesh_texture = {
 
 var OnDocumentReady = () => {
 	try {
-	    $('#waiter').show();
+	    $('#waiter').css('visibility', 'visible');
 
 	    BuildPuzzleMenu();
 	    
@@ -890,7 +890,7 @@ var OnDocumentReady = () => {
         ]).then(() => {
             puzzle.Render();
             $('#puzzle_name').text('Puzzle ' + puzzle_number.toString());
-            $('#waiter').hide();
+            $('#waiter').css('visibility', 'hidden');
         });
         
         $.ajax({
@@ -970,10 +970,10 @@ var ChangeImage = (delta) => {
         else if(picture_mesh_texture.number < 0)
             picture_mesh_texture.number = picture_mesh_count - 1;
         picture_mesh_texture.source = 'Images/image' + picture_mesh_texture.number.toString() + '.png';
-        $('#waiter').show();
+        $('#waiter').css('visibility', 'visible');
         PromiseTexture(picture_mesh_texture).then(() => {
             puzzle.Render();
-            $('#waiter').hide();
+            $('#waiter').css('visibility', 'hidden');
         });
     }
 }
@@ -986,12 +986,12 @@ var OnUseCustomImageButtonClicked = () => {
         return;
     }
     let file_reader = new FileReader();
-    $('#waiter').show();
+    $('#waiter').css('visibility', 'visible');
     file_reader.onload = () => {
         picture_mesh_texture.source = file_reader.result;
         PromiseTexture(picture_mesh_texture).then(() => {
             puzzle.Render();
-            $('#waiter').hide();
+            $('#waiter').css('visibility', 'hidden');
         });
     }
     file_reader.readAsDataURL(files[0]);
