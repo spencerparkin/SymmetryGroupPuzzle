@@ -1003,11 +1003,13 @@ var OnPrevImageButtonClicked = () => {
 var OnScrambleButtonClicked = () => {
     puzzle.ClearHistory();
     puzzle.QueueScrambleMoves(30);
+    UpdateUndoRedoButtons();
 }
 
 var OnSolveButtonClicked = () => {
     puzzle.ClearHistory();
     puzzle.QueueSolutionMoves(puzzle_number);
+    UpdateUndoRedoButtons();
 }
 
 var OnAnimationToggleClicked = () => {
