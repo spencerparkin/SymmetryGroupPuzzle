@@ -2,9 +2,12 @@
 	order: 1;
 	flex: 1, 1, auto;
 	display: inline-block;
-	border: 1px solid black;
 	width: 800px;
 	height: 800px;
+}
+
+#custom_image_file {
+    width: 100%;
 }
 
 body {
@@ -23,7 +26,6 @@ div.puzzle_menu {
     white-space: nowrap;
     height: 800px;
     width: fit-content;
-    border: 1px solid black;
 }
 
 div.puzzle_menu img {
@@ -47,15 +49,14 @@ div.puzzle_menu img:hover {
     flex: 0, 1, auto;
     display: inline-block;
     height: 800px;
-    text-align: left;
-    border: 1px solid black;
+    text-align: center;
 }
 
 .button {
     background-color: blue;
     border: none;
     color: white;
-    padding: 16px 32px;
+    padding: 4px 12px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -65,7 +66,7 @@ div.puzzle_menu img:hover {
     transition-duration: 0.1s;
     cursor: pointer;
     border-radius: 8px;
-    box-shadow: 0 5px #999;
+    box-shadow: 5px 5px #999;
 }
 
 .button:hover {
