@@ -78,7 +78,7 @@ class GameServer(object):
 
 if __name__ == '__main__':
     root_dir = os.path.dirname(os.path.abspath(__file__))
-    port = int(os.environ.get('PORT', 5100))
+    port = int(os.environ.get('PORT', 5200))
     server = GameServer(root_dir)
     config = {
         'global': {

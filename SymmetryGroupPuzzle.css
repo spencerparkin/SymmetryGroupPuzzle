@@ -1,4 +1,6 @@
-canvas {
+#canvas {
+	order: 1;
+	flex: 1, 1, auto;
 	display: inline-block;
 	border: 1px solid black;
 	width: 800px;
@@ -14,7 +16,8 @@ p, h1, h2, h3, button, legend {
 }
 
 div.puzzle_menu {
-    float: left;
+    order: 0;
+    flex: 0, 1, auto;
     background-color: #FFF;
     overflow-y: auto;
     white-space: nowrap;
@@ -33,13 +36,17 @@ div.puzzle_menu img:hover {
 }
 
 .puzzle_area {
-    display: inline-block;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
 }
 
 .puzzle_options {
+    order: 2;
+    flex: 0, 1, auto;
     display: inline-block;
     height: 800px;
-    float: right;
     text-align: left;
     border: 1px solid black;
 }
